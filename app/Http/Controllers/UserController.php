@@ -6,31 +6,52 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+
 class UserController extends Controller
 {
    
     public function index()
     {
-        return Inertia::render('users/index', ['users' => User::all()]);
+        return Inertia::render('users/index', ['data' => User::all()]);
     }
 
  
     public function create()
     {
-        //
+   
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        //
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ]);
+            
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+            
+            event(new Registered($user));
+            
+            Log::info('User created', ['id' => $user->id, 'email' => $user->email]);
+            
+            return to_route('users')->with('success', 'User created successfully!');
+        } catch (\Exception $e) {
+            Log::error('Failed to create user', ['error' => $e->getMessage()]);
+            return back()->withInput()->with('error', 'Failed to create user. Please try again.');
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //

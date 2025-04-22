@@ -3,32 +3,26 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Edit, Filter, Plus, Search, Trash } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit, Filter, Search, Trash } from 'lucide-react';
 import { useState } from 'react';
+import UserFormDialog from './userForm'; // Import the form dialog component
 
-const breadcrumbs = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Users',
-        href: '/users',
-    },
-];
-
-// Mock data for demonstration
-const mockUsers = [
-    { id: 1, name: 'john doe', email: 'john.doe@example.com', status: 'active' },
-    { id: 2, name: 'jane smith', email: 'jane.smith@example.com', status: 'active' },
-    { id: 3, name: 'robert johnson', email: 'robert@example.com', status: 'inactive' },
-    { id: 4, name: 'emily williams', email: 'emily@example.com', status: 'active' },
-    { id: 5, name: 'michael brown', email: 'michael@example.com', status: 'inactive' },
-];
-
-export default function Index({ users = mockUsers }) {
+export default function Index({ data }) {
+    const [users, setUsers] = useState(data);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [selectedUser, setSelectedUser] = useState(null);
+
+    const breadcrumbs = [
+        {
+            title: 'Dashboard',
+            href: '/dashboard',
+        },
+        {
+            title: 'Users',
+            href: '/users',
+        },
+    ];
 
     const capitalizeEachWord = (str) => {
         return str
@@ -49,6 +43,28 @@ export default function Index({ users = mockUsers }) {
         setSearchTerm(e.target.value);
     };
 
+    const handleSaveUser = (userData) => {
+        if (selectedUser) {
+            setUsers((prevUsers) => prevUsers.map((user) => (user.id === selectedUser.id ? { ...user, ...userData } : user)));
+        } else {
+            setUsers((prevUsers) => [...prevUsers, { id: users.length + 1, ...userData }]);
+        }
+        setSelectedUser(null);
+    };
+
+    const handleEditUser = (user) => {
+        setSelectedUser(user);
+    };
+
+    const handleDeleteUser = (userId) => {
+        if (confirm('Are you sure you want to delete this user?')) {
+            setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+            router.delete(route('users.destroy', userId), {
+                preserveScroll: true,
+            });
+        }
+    };
+
     const getStatusBadge = (status) => {
         if (status === 'active') {
             return (
@@ -57,12 +73,32 @@ export default function Index({ users = mockUsers }) {
                     <span className="font-medium">Active</span>
                 </div>
             );
+        } else if (status === 'pending') {
+            return (
+                <div className="flex items-center gap-1 text-orange-500">
+                    <AlertCircle size={16} />
+                    <span className="font-medium">Pending</span>
+                </div>
+            );
         }
         return (
-            <div className="flex items-center gap-1 text-amber-700">
+            <div className="flex items-center gap-1 text-gray-500">
                 <AlertCircle size={16} />
                 <span className="font-medium">Inactive</span>
             </div>
+        );
+    };
+
+    const getRoleBadge = (role) => {
+        const roleClasses = {
+            admin: 'bg-purple-100 text-purple-800',
+            manager: 'bg-blue-100 text-blue-800',
+            user: 'bg-green-100 text-green-800',
+            guest: 'bg-gray-100 text-gray-800',
+        };
+
+        return (
+            <span className={`rounded-full px-2 py-1 text-xs font-medium uppercase ${roleClasses[role] || 'bg-gray-100 text-gray-800'}`}>{role}</span>
         );
     };
 
@@ -93,49 +129,46 @@ export default function Index({ users = mockUsers }) {
                                 <option value="all">All Status</option>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
+                                <option value="pending">Pending</option>
                             </select>
                         </div>
                     </div>
 
-                    <Button className="flex h-11 items-center gap-2 px-4 text-white transition-colors hover:bg-blue-700">
-                        <Plus size={16} />
-                        <span>Add New User</span>
-                    </Button>
+                    <UserFormDialog user={selectedUser} onSave={handleSaveUser} />
                 </div>
 
                 <div className="overflow-hidden rounded-lg border border-gray-200">
                     <Table>
                         <TableHeader className="bg-gray-50">
                             <TableRow>
-                                <TableHead className="w-16 text-gray-700">#.</TableHead>
+                                <TableHead className="w-16 text-gray-700">ID</TableHead>
                                 <TableHead className="text-gray-700">Name</TableHead>
                                 <TableHead className="text-gray-700">Email</TableHead>
+                                <TableHead className="text-gray-700">Role</TableHead>
                                 <TableHead className="text-gray-700">Status</TableHead>
                                 <TableHead className="w-24 text-right text-gray-700">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {filteredUsers.length > 0 ? (
-                                filteredUsers.map((user, index) => (
+                                filteredUsers.map((user) => (
                                     <TableRow key={user.id} className="transition-colors hover:bg-gray-50">
                                         <TableCell className="font-medium text-gray-500">{user.id}</TableCell>
                                         <TableCell className="font-medium text-gray-800">{capitalizeEachWord(user.name)}</TableCell>
                                         <TableCell className="text-gray-600">{user.email}</TableCell>
+                                        <TableCell>{getRoleBadge(user.role)}</TableCell>
                                         <TableCell>{getStatusBadge(user.status)}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center justify-end gap-4">
-                                                <button className="rounded-full p-1 transition-colors hover:bg-gray-100">
-                                                    <Edit size={18} className="" />
+                                                <button
+                                                    className="rounded-full p-1 transition-colors hover:bg-gray-100"
+                                                    onClick={() => handleEditUser(user)}
+                                                >
+                                                    <Edit size={18} className="text-blue-600" />
                                                 </button>
                                                 <button
-                                                    onClick={() => {
-                                                        if (confirm('Are you sure you want to delete this user?')) {
-                                                            router.delete(route('users.destroy', user.id), {
-                                                                preserveScroll: true,
-                                                            });
-                                                        }
-                                                    }}
                                                     className="rounded-full p-1 transition-colors hover:bg-gray-100"
+                                                    onClick={() => handleDeleteUser(user.id)}
                                                 >
                                                     <Trash size={18} className="text-red-500" />
                                                 </button>
@@ -145,7 +178,7 @@ export default function Index({ users = mockUsers }) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-32 text-center text-gray-500">
+                                    <TableCell colSpan={6} className="h-32 text-center text-gray-500">
                                         No users found matching your search criteria
                                     </TableCell>
                                 </TableRow>
@@ -163,7 +196,7 @@ export default function Index({ users = mockUsers }) {
                             Previous
                         </Button>
                         <div className="flex items-center">
-                            <span className="rounded-md bg-black px-3 py-1 font-medium text-white">1</span>
+                            <span className="rounded-md bg-blue-50 px-3 py-1 font-medium text-blue-700">1</span>
                             <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">2</span>
                             <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">3</span>
                         </div>
