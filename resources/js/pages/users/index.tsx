@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Edit, Filter, Plus, Search, Trash } from 'lucide-react';
 import { useState } from 'react';
 
@@ -127,7 +127,16 @@ export default function Index({ users = mockUsers }) {
                                                 <button className="rounded-full p-1 transition-colors hover:bg-gray-100">
                                                     <Edit size={18} className="" />
                                                 </button>
-                                                <button className="rounded-full p-1 transition-colors hover:bg-gray-100">
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm('Are you sure you want to delete this user?')) {
+                                                            router.delete(route('users.destroy', user.id), {
+                                                                preserveScroll: true,
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="rounded-full p-1 transition-colors hover:bg-gray-100"
+                                                >
                                                     <Trash size={18} className="text-red-500" />
                                                 </button>
                                             </div>
