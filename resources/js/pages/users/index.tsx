@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Edit, Filter, Search, Trash } from 'lucide-react';
 import { useState } from 'react';
-import UserFormDialog from './userForm'; // Import the form dialog component
+import UserFormDialog from '../logs/LogForm'; // Import the form dialog component
 
 export default function Index({ data }) {
     const [users, setUsers] = useState(data);

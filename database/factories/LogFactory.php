@@ -17,10 +17,7 @@ class LogFactory extends Factory
         return [
             'user_id' => User::factory(), 
             'issue_id' => Issue::factory(),
-            'action' => $this->faker->word(),
-            'type' => $this->faker->randomElement(['hardware', 'software', 'network', 'security', 'other']),
-            'issue' => $this->faker->sentence(),
-            'description' => $this->faker->paragraph(),
+            'action_taken' => $this->faker->word(),
             'status' => $this->faker->randomElement(['pending', 'in_progress', 'resolved', 'closed']),
         ];
     }

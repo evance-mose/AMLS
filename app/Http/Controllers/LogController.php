@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Log;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class LogController extends Controller
 {
@@ -12,7 +13,9 @@ class LogController extends Controller
      */
     public function index()
     {
-        //
+        return Inertia::render('logs/index', [
+            'data' => Log::with(['user', 'issue'])->get(),
+        ]);
     }
 
     /**

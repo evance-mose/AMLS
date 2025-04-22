@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\LogController;
+use App\Http\Controllers\IssueController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -13,6 +15,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
     Route::resource('users', UserController::class);
+    Route::resource('logs', LogController::class);
+    Route::resource('issues', IssueController::class);
+    
 });
 
 require __DIR__.'/settings.php';
