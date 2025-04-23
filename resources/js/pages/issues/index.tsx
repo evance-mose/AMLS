@@ -5,13 +5,14 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Clock, Filter, Loader2, Plus, Search, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import LogFormDialog from './LogForm';
+import IssueFormDialog from './IssueForm';
 
-export default function Index({ data }) {
-    const [logs, setLogs] = useState(data);
+export default function Index({ issues }) {
+    const [issuesList, setIssuesList] = useState(issues);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [selectedLog, setSelectedLog] = useState(null);
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [selectedIssue, setSelectedIssue] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -21,8 +22,8 @@ export default function Index({ data }) {
             href: '/dashboard',
         },
         {
-            title: 'Logs',
-            href: '/logs',
+            title: 'Issues',
+            href: '/issues',
         },
     ];
 
@@ -33,39 +34,43 @@ export default function Index({ data }) {
             .join(' ');
     };
 
-    const filteredLogs = logs.filter((log) => {
+    const filteredIssues = issuesList.filter((issue) => {
         const matchesSearch =
-            log.issue?.type?.toLowerCase().includes(searchTerm.toLowerCase()) || log.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            issue.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            issue.atm_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            issue.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        if (statusFilter === 'all') return matchesSearch;
-        return matchesSearch && log.status === statusFilter;
+        const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
+        const matchesType = typeFilter === 'all' || issue.type === typeFilter;
+
+        return matchesSearch && matchesStatus && matchesType;
     });
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
-    const handleSaveLog = (logData) => {
-        if (selectedLog) {
-            setLogs((prevLogs) => prevLogs.map((log) => (log.id === selectedLog.id ? { ...log, ...logData } : log)));
+    const handleSaveIssue = (issueData) => {
+        if (selectedIssue) {
+            setIssuesList((prevIssues) => prevIssues.map((issue) => (issue.id === selectedIssue.id ? { ...issue, ...issueData } : issue)));
         } else {
-            setLogs((prevLogs) => [...prevLogs, { id: logs.length + 1, ...logData }]);
+            setIssuesList((prevIssues) => [...prevIssues, { id: issuesList.length + 1, ...issueData }]);
         }
-        setSelectedLog(null);
+        setSelectedIssue(null);
         setIsFormOpen(false);
     };
 
-    const handleDeleteLog = (logId) => {
-        if (confirm('Are you sure you want to delete this user?')) {
-            setLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId));
-            router.delete(route('logs.destroy', logId), {
+    const handleDeleteIssue = (issueId) => {
+        if (confirm('Are you sure you want to delete this issue?')) {
+            setIssuesList((prevIssues) => prevIssues.filter((issue) => issue.id !== issueId));
+            router.delete(route('issues.destroy', issueId), {
                 preserveScroll: true,
             });
         }
     };
 
-    const handleEditLog = (log) => {
-        setSelectedLog(log);
+    const handleEditIssue = (issue) => {
+        setSelectedIssue(issue);
         setIsDialogOpen(true);
         setIsFormOpen(true);
     };
@@ -104,23 +109,48 @@ export default function Index({ data }) {
         );
     };
 
+    const getTypeBadge = (type) => {
+        const typeConfig = {
+            hardware: {
+                classes: 'bg-purple-50 text-purple-700 border-purple-100',
+            },
+            software: {
+                classes: 'bg-blue-50 text-blue-700 border-blue-100',
+            },
+            network: {
+                classes: 'bg-teal-50 text-teal-700 border-teal-100',
+            },
+            security: {
+                classes: 'bg-red-50 text-red-700 border-red-100',
+            },
+            other: {
+                classes: 'bg-gray-50 text-gray-700 border-gray-100',
+            },
+        };
+
+        const config = typeConfig[type] || typeConfig.other;
+
+        return <div className={`rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>{capitalizeEachWord(type)}</div>;
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Log Management" />
+            <Head title="Issue Management" />
             <div className="flex h-full flex-1 flex-col gap-6 rounded-lg bg-white p-6 shadow-sm">
-                <div className="rounded-lg p-4">
+                <div className="">
                     <div className="flex flex-col justify-between gap-4 md:flex-row">
                         <div className="flex flex-1 items-center gap-2">
                             <div className="relative flex-1">
                                 <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
                                 <Input
                                     type="search"
-                                    placeholder="Search by fault or user name..."
+                                    placeholder="Search by title, ATM ID or user..."
                                     className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
                                     value={searchTerm}
                                     onChange={handleSearchChange}
                                 />
                             </div>
+
                             <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
                                 <Filter size={16} className="text-gray-500" />
                                 <select
@@ -135,15 +165,32 @@ export default function Index({ data }) {
                                     <option value="closed">Closed</option>
                                 </select>
                             </div>
+
+                            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                                <Filter size={16} className="text-gray-500" />
+                                <select
+                                    className="bg-transparent text-sm text-gray-700 focus:outline-none"
+                                    value={typeFilter}
+                                    onChange={(e) => setTypeFilter(e.target.value)}
+                                >
+                                    <option value="all">All Types</option>
+                                    <option value="hardware">Hardware</option>
+                                    <option value="software">Software</option>
+                                    <option value="network">Network</option>
+                                    <option value="security">Security</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
                             <Button
                                 onClick={() => {
-                                    setSelectedLog(null);
+                                    setSelectedIssue(null);
                                     setIsFormOpen(true);
+                                    setIsDialogOpen(true);
                                 }}
                                 className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
                             >
                                 <Plus size={16} />
-                                <span>New Log</span>
+                                <span>New Issue</span>
                             </Button>
                         </div>
                     </div>
@@ -153,35 +200,28 @@ export default function Index({ data }) {
                     <Table>
                         <TableHeader className="bg-gray-50">
                             <TableRow>
-                                <TableHead className="font-medium text-gray-700">Fault Type</TableHead>
-                                <TableHead className="font-medium text-gray-700">Action Taken</TableHead>
+                                <TableHead className="font-medium text-gray-700">ATM ID</TableHead>
+                                <TableHead className="font-medium text-gray-700">Title</TableHead>
+                                <TableHead className="font-medium text-gray-700">Type</TableHead>
                                 <TableHead className="font-medium text-gray-700">Status</TableHead>
-                                <TableHead className="font-medium text-gray-700">Assigned To</TableHead>
                                 <TableHead className="w-24 text-right font-medium text-gray-700">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredLogs.length > 0 ? (
-                                filteredLogs.map((log) => (
-                                    <TableRow key={log.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
-                                        <TableCell className="font-medium text-gray-800">{capitalizeEachWord(log.issue?.type || '')}</TableCell>
-                                        <TableCell className="text-gray-600">{log.action_taken}</TableCell>
-                                        <TableCell>{getStatusBadge(log.status)}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 font-medium text-blue-700">
-                                                    {log.user?.name?.charAt(0) || '?'}
-                                                </div>
-                                                <span className="text-gray-700">{log.user?.name}</span>
-                                            </div>
-                                        </TableCell>
+                            {filteredIssues.length > 0 ? (
+                                filteredIssues.map((issue) => (
+                                    <TableRow key={issue.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                                        <TableCell className="text-gray-600">{issue.atm_id}</TableCell>
+                                        <TableCell className="font-medium text-gray-800">{issue.title}</TableCell>
+                                        <TableCell>{getTypeBadge(issue.type)}</TableCell>
+                                        <TableCell>{getStatusBadge(issue.status)}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center justify-end gap-2">
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
-                                                    onClick={() => handleEditLog(log)}
+                                                    onClick={() => handleEditIssue(issue)}
                                                 >
                                                     View
                                                 </Button>
@@ -189,7 +229,7 @@ export default function Index({ data }) {
                                                     variant="outline"
                                                     size="sm"
                                                     className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
-                                                    onClick={() => handleDeleteLog(log.id)}
+                                                    onClick={() => handleDeleteIssue(issue.id)}
                                                 >
                                                     Delete
                                                 </Button>
@@ -199,10 +239,10 @@ export default function Index({ data }) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-32 text-center">
+                                    <TableCell colSpan={6} className="h-32 text-center">
                                         <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
                                             <AlertCircle size={24} />
-                                            <p>No logs found matching your search criteria</p>
+                                            <p>No issues found matching your search criteria</p>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -213,7 +253,8 @@ export default function Index({ data }) {
 
                 <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
                     <div>
-                        Showing <span className="font-medium">{filteredLogs.length}</span> of <span className="font-medium">{logs.length}</span> logs
+                        Showing <span className="font-medium">{filteredIssues.length}</span> of{' '}
+                        <span className="font-medium">{issuesList.length}</span> issues
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
@@ -231,7 +272,17 @@ export default function Index({ data }) {
                 </div>
             </div>
 
-            {isFormOpen && <LogFormDialog log={selectedLog} isOpen={isDialogOpen} onSave={handleSaveLog} onClose={() => setIsFormOpen(false)} />}
+            {isFormOpen && (
+                <IssueFormDialog
+                    issue={selectedIssue}
+                    isOpen={isDialogOpen}
+                    onSave={handleSaveIssue}
+                    onClose={() => {
+                        setIsFormOpen(false);
+                        setIsDialogOpen(false);
+                    }}
+                />
+            )}
         </AppLayout>
     );
 }

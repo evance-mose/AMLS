@@ -12,12 +12,12 @@ class Issue extends Model
     
     protected $fillable = ['user_id', 'title', "atm_id", 'type', 'description', 'status'];
 
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function logs(): HasMany
+    public function logs()
     {
         return $this->hasMany(Log::class);
     }

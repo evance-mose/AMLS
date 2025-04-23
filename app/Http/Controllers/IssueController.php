@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Issue;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class IssueController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    //
+
     public function index()
     {
-        //
-    }
+        return Inertia::render('issues/index', [
+            'issues' => Issue::with(['user'])->get(),
+        ]);
+    }    
 
     /**
      * Show the form for creating a new resource.

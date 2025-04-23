@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { FileText, LayoutGrid, LogsIcon, Users } from 'lucide-react';
+import { FileText, Kanban, LayoutGrid, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -19,13 +19,13 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
-        title: 'Logs',
-        href: '/logs',
-        icon: LogsIcon,
+        title: 'Issues',
+        href: '/issues',
+        icon: Kanban,
     },
     {
-        title: 'Reports',
-        href: '/reports',
+        title: 'Logs',
+        href: '/logs',
         icon: FileText,
     },
 ];
