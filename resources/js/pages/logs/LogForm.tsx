@@ -249,7 +249,7 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
                                     </Label>
                                     <Textarea
                                         id="action_taken"
-                                        placeholder="Describe actions taken for this issue"
+                                        placeholder="Deatils about the issue"
                                         value={selectedIssue?.description}
                                         onChange={(e) => setData('action_taken', e.target.value)}
                                         className={`min-h-24 w-full ${errors.action_taken ? 'border-red-500' : ''}`}

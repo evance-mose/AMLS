@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Clock, Filter, Loader2, Plus, Search, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import LogFormDialog from './LogForm';
 
@@ -56,7 +57,7 @@ export default function Index({ data, issues }) {
     };
 
     const handleDeleteLog = (logId) => {
-        if (confirm('Are you sure you want to delete this user?')) {
+        if (confirm('Are you sure you want to delete this log?')) {
             setLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId));
             router.delete(route('logs.destroy', logId), {
                 preserveScroll: true,
@@ -104,138 +105,191 @@ export default function Index({ data, issues }) {
         );
     };
 
+    const getIssueTypeIcon = (type) => {
+        // You can customize this with appropriate icons for each type
+        const typeIcons = {
+            hardware: <AlertCircle size={16} className="text-purple-600" />,
+            software: <AlertCircle size={16} className="text-blue-600" />,
+            network: <AlertCircle size={16} className="text-teal-600" />,
+            security: <AlertCircle size={16} className="text-red-600" />,
+            other: <AlertCircle size={16} className="text-gray-600" />,
+        };
+
+        return typeIcons[type] || typeIcons.other;
+    };
+
+    const getCategoryIcon = (category) => {
+        switch (category) {
+            case 'hardware':
+                return <HardDrive className="h-5 w-5" />;
+            case 'software':
+                return <Cpu className="h-5 w-5" />;
+            case 'network':
+                return <Globe className="h-5 w-5" />;
+            case 'security':
+                return <Shield className="h-5 w-5" />;
+            default:
+                return <HelpCircle className="h-5 w-5" />;
+        }
+    };
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Log Management" />
-            <div className="flex h-full flex-1 flex-col gap-6 rounded-lg bg-white p-6 shadow-sm">
-                <div className="rounded-lg p-4">
-                    <div className="flex flex-col justify-between gap-4 md:flex-row">
-                        <div className="flex flex-1 items-center gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                                <Input
-                                    type="search"
-                                    placeholder="Search by fault or user name..."
-                                    className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
-                                />
-                            </div>
-                            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                                <Filter size={16} className="text-gray-500" />
-                                <select
-                                    className="bg-transparent text-sm text-gray-700 focus:outline-none"
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                >
-                                    <option value="all">All Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="resolved">Resolved</option>
-                                    <option value="closed">Closed</option>
-                                </select>
-                            </div>
-                            <Button
-                                onClick={() => {
-                                    setSelectedLog(null);
-                                    setIsFormOpen(true);
-                                    setIsDialogOpen(true);
-                                }}
-                                className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
-                            >
-                                <Plus size={16} />
-                                <span>New Log</span>
-                            </Button>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                <div className="flex flex-col justify-between gap-4 md:flex-row">
+                    <div className="flex flex-1 items-center gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                            <Input
+                                type="search"
+                                placeholder="Search by fault or user name..."
+                                className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                            />
                         </div>
+                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                            <Filter size={16} className="text-gray-500" />
+                            <select
+                                className="bg-transparent text-sm text-gray-700 focus:outline-none"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                        <Button
+                            onClick={() => {
+                                setSelectedLog(null);
+                                setIsFormOpen(true);
+                                setIsDialogOpen(true);
+                            }}
+                            className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
+                        >
+                            <Plus size={16} />
+                            <span>New Log</span>
+                        </Button>
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border border-gray-200">
-                    <Table>
-                        <TableHeader className="bg-gray-50">
-                            <TableRow>
-                                <TableHead className="font-medium text-gray-700">ATM ID</TableHead>
-                                <TableHead className="font-medium text-gray-700">Issue</TableHead>
-                                <TableHead className="font-medium text-gray-700">Action Taken</TableHead>
-                                <TableHead className="font-medium text-gray-700">Status</TableHead>
-                                <TableHead className="font-medium text-gray-700">Assigned To</TableHead>
-                                <TableHead className="w-24 text-right font-medium text-gray-700">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredLogs.length > 0 ? (
-                                filteredLogs.map((log) => (
-                                    <TableRow key={log.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
-                                        <TableCell className="font-medium text-gray-800">{log.issue?.atm_id || ''}</TableCell>
-                                        <TableCell className="font-medium text-gray-800">{capitalizeEachWord(log.issue?.type || '')}</TableCell>
-                                        <TableCell className="text-gray-600">{log.action_taken}</TableCell>
-                                        <TableCell>{getStatusBadge(log.status)}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 font-medium text-blue-700">
-                                                    {log.user?.name?.charAt(0) || '?'}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>All Logs</CardTitle>
+                        <CardDescription>Maintenance logs sorted by recency</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="font-medium">ATM ID</TableHead>
+                                    <TableHead className="font-medium">Category</TableHead>
+                                    <TableHead className="font-medium">Action</TableHead>
+                                    <TableHead className="font-medium">Status</TableHead>
+                                    <TableHead className="font-medium">Assigned To</TableHead>
+                                    <TableHead className="w-24 text-right font-medium">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredLogs.length > 0 ? (
+                                    filteredLogs.map((log) => (
+                                        <TableRow key={log.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                                            <TableCell className="font-medium text-gray-800">
+                                                {log.issue?.atm_id || ''}
+                                                <div className="text-xs text-gray-500">
+                                                    {log.created_at ? new Date(log.created_at).toLocaleDateString() : 'No date'}
                                                 </div>
-                                                <span className="text-gray-700">{log.user?.name}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
-                                                    onClick={() => handleEditLog(log)}
-                                                >
-                                                    View
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
-                                                    onClick={() => handleDeleteLog(log.id)}
-                                                >
-                                                    Delete
-                                                </Button>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {getCategoryIcon(log.issue.type)}
+                                                    <span className="capitalize">{log.issue.type}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-gray-600">
+                                                {log.action_taken}
+                                                <div className="text-xs text-gray-500">
+                                                    {log.notes?.substring(0, 40) || 'No additional notes'}
+                                                    {log.notes?.length > 40 ? '...' : ''}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>{getStatusBadge(log.status)}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-gray-700">{log.user?.name}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
+                                                        onClick={() => handleEditLog(log)}
+                                                    >
+                                                        View
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
+                                                        onClick={() => handleDeleteLog(log.id)}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-32 text-center">
+                                            <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
+                                                <AlertCircle size={24} />
+                                                <p>No logs found matching your search criteria</p>
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="h-32 text-center">
-                                        <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
-                                            <AlertCircle size={24} />
-                                            <p>No logs found matching your search criteria</p>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-
-                <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
-                    <div>
-                        Showing <span className="font-medium">{filteredLogs.length}</span> of <span className="font-medium">{logs.length}</span> logs
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
-                            Previous
-                        </Button>
-                        <div className="flex items-center">
-                            <span className="rounded-md bg-blue-50 px-3 py-1 font-medium text-blue-700">1</span>
-                            <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">2</span>
-                            <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">3</span>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                    <CardFooter className="justify-between border-t px-6 py-3">
+                        <div className="text-sm text-gray-500">
+                            Showing <span className="font-medium">{filteredLogs.length}</span> of <span className="font-medium">{logs.length}</span>{' '}
+                            logs
                         </div>
-                        <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
-                            Next
-                        </Button>
-                    </div>
-                </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
+                                Previous
+                            </Button>
+                            <div className="flex items-center">
+                                <span className="rounded-md bg-blue-50 px-3 py-1 font-medium text-blue-700">1</span>
+                                <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">2</span>
+                                <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">3</span>
+                            </div>
+                            <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
+                                Next
+                            </Button>
+                        </div>
+                    </CardFooter>
+                </Card>
             </div>
 
             {isFormOpen && (
-                <LogFormDialog log={selectedLog} isOpen={isDialogOpen} issues={issues} onSave={handleSaveLog} onClose={() => setIsFormOpen(false)} />
+                <LogFormDialog
+                    log={selectedLog}
+                    isOpen={isDialogOpen}
+                    issues={issues}
+                    onSave={handleSaveLog}
+                    onClose={() => {
+                        setIsFormOpen(false);
+                        setIsDialogOpen(false);
+                    }}
+                />
             )}
         </AppLayout>
     );

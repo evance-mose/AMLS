@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Edit, Filter, Search, Trash } from 'lucide-react';
+import { AlertCircle, CheckCircle, Filter, Search } from 'lucide-react';
 import { useState } from 'react';
 import UserFormDialog from './userForm'; // Import the form dialog component
 
@@ -159,19 +159,23 @@ export default function Index({ data }) {
                                         <TableCell>{getRoleBadge(user.role)}</TableCell>
                                         <TableCell>{getStatusBadge(user.status)}</TableCell>
                                         <TableCell>
-                                            <div className="flex items-center justify-end gap-4">
-                                                <button
-                                                    className="rounded-full p-1 transition-colors hover:bg-gray-100"
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
                                                     onClick={() => handleEditUser(user)}
                                                 >
-                                                    <Edit size={18} className="text-blue-600" />
-                                                </button>
-                                                <button
-                                                    className="rounded-full p-1 transition-colors hover:bg-gray-100"
+                                                    View
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
                                                     onClick={() => handleDeleteUser(user.id)}
                                                 >
-                                                    <Trash size={18} className="text-red-500" />
-                                                </button>
+                                                    Delete
+                                                </Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>

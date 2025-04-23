@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Clock, Filter, Loader2, Plus, Search, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import IssueFormDialog from './IssueForm';
 
@@ -133,143 +134,190 @@ export default function Index({ issues }) {
         return <div className={`rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>{capitalizeEachWord(type)}</div>;
     };
 
+    const getCategoryIcon = (category) => {
+        switch (category) {
+            case 'hardware':
+                return <HardDrive className="h-5 w-5" />;
+            case 'software':
+                return <Cpu className="h-5 w-5" />;
+            case 'network':
+                return <Globe className="h-5 w-5" />;
+            case 'security':
+                return <Shield className="h-5 w-5" />;
+            default:
+                return <HelpCircle className="h-5 w-5" />;
+        }
+    };
+
+    const getTypeIcon = (type) => {
+        // You can customize this with appropriate icons for each type
+        const typeIcons = {
+            hardware: <AlertCircle size={16} className="text-purple-600" />,
+            software: <AlertCircle size={16} className="text-blue-600" />,
+            network: <AlertCircle size={16} className="text-teal-600" />,
+            security: <AlertCircle size={16} className="text-red-600" />,
+            other: <AlertCircle size={16} className="text-gray-600" />,
+        };
+
+        return typeIcons[type] || typeIcons.other;
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Issue Management" />
-            <div className="flex h-full flex-1 flex-col gap-6 rounded-lg bg-white p-6 shadow-sm">
-                <div className="">
-                    <div className="flex flex-col justify-between gap-4 md:flex-row">
-                        <div className="flex flex-1 items-center gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                                <Input
-                                    type="search"
-                                    placeholder="Search by title, ATM ID or user..."
-                                    className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                                <Filter size={16} className="text-gray-500" />
-                                <select
-                                    className="bg-transparent text-sm text-gray-700 focus:outline-none"
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                >
-                                    <option value="all">All Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="resolved">Resolved</option>
-                                    <option value="closed">Closed</option>
-                                </select>
-                            </div>
-
-                            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                                <Filter size={16} className="text-gray-500" />
-                                <select
-                                    className="bg-transparent text-sm text-gray-700 focus:outline-none"
-                                    value={typeFilter}
-                                    onChange={(e) => setTypeFilter(e.target.value)}
-                                >
-                                    <option value="all">All Types</option>
-                                    <option value="hardware">Hardware</option>
-                                    <option value="software">Software</option>
-                                    <option value="network">Network</option>
-                                    <option value="security">Security</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <Button
-                                onClick={() => {
-                                    setSelectedIssue(null);
-                                    setIsFormOpen(true);
-                                    setIsDialogOpen(true);
-                                }}
-                                className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
-                            >
-                                <Plus size={16} />
-                                <span>New Issue</span>
-                            </Button>
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                <div className="flex flex-col justify-between gap-4 md:flex-row">
+                    <div className="flex flex-1 items-center gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                            <Input
+                                type="search"
+                                placeholder="Search by title, ATM ID or user..."
+                                className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                            />
                         </div>
+
+                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                            <Filter size={16} className="text-gray-500" />
+                            <select
+                                className="bg-transparent text-sm text-gray-700 focus:outline-none"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                <option value="all">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                            <Filter size={16} className="text-gray-500" />
+                            <select
+                                className="bg-transparent text-sm text-gray-700 focus:outline-none"
+                                value={typeFilter}
+                                onChange={(e) => setTypeFilter(e.target.value)}
+                            >
+                                <option value="all">All Types</option>
+                                <option value="hardware">Hardware</option>
+                                <option value="software">Software</option>
+                                <option value="network">Network</option>
+                                <option value="security">Security</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <Button
+                            onClick={() => {
+                                setSelectedIssue(null);
+                                setIsFormOpen(true);
+                                setIsDialogOpen(true);
+                            }}
+                            className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
+                        >
+                            <Plus size={16} />
+                            <span>New Issue</span>
+                        </Button>
                     </div>
                 </div>
 
-                <div className="overflow-hidden rounded-lg border border-gray-200">
-                    <Table>
-                        <TableHeader className="bg-gray-50">
-                            <TableRow>
-                                <TableHead className="font-medium text-gray-700">ATM ID</TableHead>
-                                <TableHead className="font-medium text-gray-700">Title</TableHead>
-                                <TableHead className="font-medium text-gray-700">Type</TableHead>
-                                <TableHead className="font-medium text-gray-700">Status</TableHead>
-                                <TableHead className="w-24 text-right font-medium text-gray-700">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredIssues.length > 0 ? (
-                                filteredIssues.map((issue) => (
-                                    <TableRow key={issue.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
-                                        <TableCell className="text-gray-600">{issue.atm_id}</TableCell>
-                                        <TableCell className="font-medium text-gray-800">{issue.title}</TableCell>
-                                        <TableCell>{getTypeBadge(issue.type)}</TableCell>
-                                        <TableCell>{getStatusBadge(issue.status)}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
-                                                    onClick={() => handleEditIssue(issue)}
-                                                >
-                                                    View
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
-                                                    onClick={() => handleDeleteIssue(issue.id)}
-                                                >
-                                                    Delete
-                                                </Button>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>All Issues</CardTitle>
+                        <CardDescription>All reported issues sorted by recency</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="font-medium">ATM ID</TableHead>
+                                    <TableHead className="font-medium">Issue</TableHead>
+                                    <TableHead className="font-medium">Category</TableHead>
+                                    <TableHead className="font-medium">Status</TableHead>
+                                    <TableHead className="w-24 text-right font-medium">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredIssues.length > 0 ? (
+                                    filteredIssues.map((issue) => (
+                                        <TableRow key={issue.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                                            <TableCell className="font-medium text-gray-800">
+                                                {issue?.atm_id || ''}
+                                                <div className="text-xs text-gray-500">
+                                                    {issue.created_at ? new Date(issue.created_at).toLocaleDateString() : 'No date'}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="font-medium">
+                                                {issue.title}
+                                                <div className="text-xs text-gray-500">
+                                                    {issue.description?.substring(0, 40) || 'No description'}...
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {getCategoryIcon(issue.type)}
+                                                    <span className="capitalize">{issue.type}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>{getStatusBadge(issue.status)}</TableCell>
+
+                                            <TableCell>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
+                                                        onClick={() => handleEditIssue(issue)}
+                                                    >
+                                                        View
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
+                                                        onClick={() => handleDeleteIssue(issue.id)}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-32 text-center">
+                                            <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
+                                                <AlertCircle size={24} />
+                                                <p>No issues found matching your search criteria</p>
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="h-32 text-center">
-                                        <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
-                                            <AlertCircle size={24} />
-                                            <p>No issues found matching your search criteria</p>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-
-                <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
-                    <div>
-                        Showing <span className="font-medium">{filteredIssues.length}</span> of{' '}
-                        <span className="font-medium">{issuesList.length}</span> issues
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
-                            Previous
-                        </Button>
-                        <div className="flex items-center">
-                            <span className="rounded-md bg-blue-50 px-3 py-1 font-medium text-blue-700">1</span>
-                            <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">2</span>
-                            <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">3</span>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                    <CardFooter className="justify-between border-t px-6 py-3">
+                        <div className="text-sm text-gray-500">
+                            Showing <span className="font-medium">{filteredIssues.length}</span> of{' '}
+                            <span className="font-medium">{issuesList.length}</span> issues
                         </div>
-                        <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
-                            Next
-                        </Button>
-                    </div>
-                </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
+                                Previous
+                            </Button>
+                            <div className="flex items-center">
+                                <span className="rounded-md bg-blue-50 px-3 py-1 font-medium text-blue-700">1</span>
+                                <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">2</span>
+                                <span className="cursor-pointer px-3 py-1 hover:bg-gray-50">3</span>
+                            </div>
+                            <Button variant="outline" size="sm" className="h-8 border-gray-200 px-3">
+                                Next
+                            </Button>
+                        </div>
+                    </CardFooter>
+                </Card>
             </div>
 
             {isFormOpen && (
