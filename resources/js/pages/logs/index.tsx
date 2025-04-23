@@ -8,7 +8,7 @@ import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Globe, HardDrive, HelpCir
 import { useState } from 'react';
 import LogFormDialog from './LogForm';
 
-export default function Index({ data, issues }) {
+export default function Index({ data, issues, users }) {
     const [logs, setLogs] = useState(data);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -284,6 +284,7 @@ export default function Index({ data, issues }) {
                     log={selectedLog}
                     isOpen={isDialogOpen}
                     issues={issues}
+                    users={users}
                     onSave={handleSaveLog}
                     onClose={() => {
                         setIsFormOpen(false);

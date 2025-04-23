@@ -17,7 +17,8 @@ class LogController extends Controller
     {
         return Inertia::render('logs/index', [
             'data' => Log::with(['user', 'issue'])->get(),
-            'issues' => Issue::all() 
+            'issues' => Issue::all(),
+            'users' => User::all()
         ]);
     }
 
@@ -34,7 +35,16 @@ class LogController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validate = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+            "issue_id" =>'nullable|exists:issues,id',
+            'action_taken' => 'nullable|string|max:255',
+            'status' => 'required|in:pending,in_progress,resolved,closed',
+        ]);
+
+        Log::create($validate);
+
+        return redirect()->back()->with('success', 'Log created successfully.');
     }
 
     /**
@@ -42,7 +52,7 @@ class LogController extends Controller
      */
     public function show(Log $log)
     {
-        //
+     
     }
 
     /**
@@ -50,7 +60,7 @@ class LogController extends Controller
      */
     public function edit(Log $log)
     {
-        //
+   
     }
 
     /**

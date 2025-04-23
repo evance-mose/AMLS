@@ -8,11 +8,21 @@ import { useForm } from '@inertiajs/react';
 import { Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export default function LogFormDialog({ log = null, issues = [], isOpen = false, onOpenChange = () => {}, onSave = () => {}, onClose = () => {} }) {
+export default function LogFormDialog({
+    log = null,
+    issues = [],
+    users = [],
+    isOpen = false,
+    onOpenChange = () => {},
+    onSave = () => {},
+    onClose = () => {},
+}) {
     const isEditMode = !!log;
     const [selectedIssue, setSelectedIssue] = useState(null);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     const availableIssues = issues;
+    const availableUsers = users;
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         user_id: '',
@@ -22,6 +32,8 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
         issue_title: '',
         issue_type: '',
         atm_id: '',
+        description: '',
+        user_name: '',
     });
 
     useEffect(() => {
@@ -35,51 +47,26 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
                 issue_type: log.issue?.type || '',
                 atm_id: log.issue?.atm_id || '',
                 description: log.issue?.description || '',
+                user_name: log.user?.name || '',
             });
             if (log.issue_id) {
-                const issue = availableIssues.find((i) => i.id === log.issue_id);
+                const issue = users.find((i) => i.id === log.issue_id);
                 setSelectedIssue(issue || null);
             }
         }
-    }, [log, availableIssues, setData]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [log, availableIssues]);
 
     useEffect(() => {
         if (!isOpen) {
             reset();
             setSelectedIssue(null);
+            setSelectedUser(null);
             if (onClose) {
                 onClose();
             }
         }
     }, [isOpen, onClose, reset, data]);
-
-    const handleIssueChange = (issueId) => {
-        const issue = availableIssues.find((i) => i.id === issueId);
-
-        if (issue) {
-            setData({
-                ...data,
-                issue_id: issueId,
-                issue_title: issue.title || '',
-                issue_type: issue.type || '',
-                atm_id: issue.atm_id || '',
-                description: issue.description || '',
-                combo: `#${issue.atm_id}:${issue.title}`,
-            });
-
-            setSelectedIssue(issue);
-            console.log('Selected issue:', issue);
-        } else {
-            setData({
-                ...data,
-                issue_id: issueId,
-                issue_title: '',
-                issue_type: '',
-                atm_id: '',
-            });
-            setSelectedIssue(null);
-        }
-    };
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -95,6 +82,7 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        console.log('data', data);
 
         if (isEditMode) {
             put(route('logs.update', log.id), {
@@ -116,6 +104,21 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
     const handleOpenChange = (open) => {
         onOpenChange(open);
         if (!open) onClose();
+    };
+
+    const handleSelectChange = (name, value) => {
+        setData(name, value);
+
+        if (name === 'issue_id') {
+            const selected = availableIssues.find((i) => i.id === parseInt(value));
+            setData('atm_id', selected?.atm_id || '');
+            setSelectedIssue(selected || null);
+        }
+        if (name === 'user_id') {
+            const selected = users.find((u) => u.id == parseInt(value));
+            setSelectedUser(selected || null);
+            setData('user_name', selected?.name || '');
+        }
     };
 
     return (
@@ -141,7 +144,7 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
                                     </div>
                                     <div className="w-full space-y-2">
                                         <Label htmlFor="assigned" className="text-sm font-medium">
-                                            Issue
+                                            Category
                                         </Label>
                                         <Input
                                             id="assigned"
@@ -192,60 +195,54 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
                             </>
                         ) : (
                             <>
-                                <div className="flex w-full space-x-4">
-                                    <div className="flex-1 space-y-2">
-                                        <Label htmlFor="issue_id" className="text-sm font-medium">
-                                            Issue ID
-                                        </Label>
-                                        <Select
-                                            value={`#${selectedIssue?.atm_id}:${selectedIssue?.title}`}
-                                            onValueChange={handleIssueChange}
-                                            name="issue_id"
-                                        >
-                                            <SelectTrigger id="issue_id" className={`w-full ${errors.issue_id ? 'border-red-500' : ''}`}>
-                                                <SelectValue placeholder="Select an issue" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    <SelectLabel>Active Issues</SelectLabel>
-                                                    {availableIssues.map((issue) => (
-                                                        <SelectItem key={issue.id} value={issue.id}>
-                                                            #{issue.atm_id}: {issue.title}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.issue_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.issue_id}</p>}
-                                    </div>
-
-                                    <div className="flex-1 space-y-2">
-                                        <Label htmlFor="atm_id" className="text-sm font-medium">
-                                            ATM ID
-                                        </Label>
-                                        <Input id="atm_id" value={selectedIssue?.atm_id} className="w-full" disabled aria-label="ATM ID" />
-                                    </div>
+                                <div className="flex-1 space-y-2">
+                                    <Label htmlFor="issue_id" className="text-sm font-medium">
+                                        ATM ID
+                                    </Label>
+                                    <Select value={data.issue_id} onValueChange={(value) => handleSelectChange('issue_id', value)} name="issue_id">
+                                        <SelectTrigger id="issue_id" className={`w-full ${errors.issue_id ? 'border-red-500' : ''}`}>
+                                            <SelectValue placeholder="Select an issue">
+                                                {selectedIssue ? `#${selectedIssue.atm_id}` : 'Select an issue'}
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                <SelectLabel>Active Issues</SelectLabel>
+                                                {availableIssues.map((issue) => (
+                                                    <SelectItem key={issue.id} value={issue.id}>
+                                                        #{issue.atm_id} - {issue.title}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.issue_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.issue_id}</p>}
                                 </div>
 
                                 <div className="flex w-full space-x-4">
                                     <div className="flex-1 space-y-2">
-                                        <Label htmlFor="issue_title" className="text-sm font-medium">
-                                            Title
-                                        </Label>
-                                        <Input id="issue_title" value={selectedIssue?.title} className="w-full" disabled aria-label="Issue title" />
-                                    </div>
-
-                                    <div className="flex-1 space-y-2">
                                         <Label htmlFor="issue_type" className="text-sm font-medium">
-                                            Type
+                                            Category
                                         </Label>
                                         <Input id="issue_type" value={selectedIssue?.type} className="w-full" disabled aria-label="Issue type" />
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <Label htmlFor="issue_date" className="text-sm font-medium">
+                                            Reported
+                                        </Label>
+                                        <Input
+                                            id="issue_date"
+                                            value={formatDate(selectedIssue?.created_at)}
+                                            className="w-full"
+                                            disabled
+                                            aria-label="date"
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="action_taken" className="text-sm font-medium">
-                                        About the issue
+                                        Description
                                     </Label>
                                     <Textarea
                                         id="action_taken"
@@ -253,13 +250,12 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
                                         value={selectedIssue?.description}
                                         onChange={(e) => setData('action_taken', e.target.value)}
                                         className={`min-h-24 w-full ${errors.action_taken ? 'border-red-500' : ''}`}
-                                        aria-invalid={!!errors.action_taken}
                                         aria-describedby="action-taken-description"
                                         disabled
                                     />
                                     {errors.action_taken && <p className="mt-1 text-xs font-medium text-red-500">{errors.action_taken}</p>}
                                     <p id="action-taken-description" className="text-xs text-gray-500">
-                                        Detail about this issue.
+                                        Detail the issue.
                                     </p>
                                 </div>
                             </>
@@ -295,18 +291,42 @@ export default function LogFormDialog({ log = null, issues = [], isOpen = false,
                                 Current status of the issue.
                             </p>
                         </div>
-                        <div className="w-full space-y-2">
-                            <Label htmlFor="assigned" className="text-sm font-medium">
-                                Assigned To
-                            </Label>
-                            <Input
-                                id="assigned"
-                                value={log?.user?.name || 'Unassigned'}
-                                className="w-full"
-                                disabled
-                                aria-label="Assigned user name"
-                            />
-                        </div>
+                        {isEditMode ? (
+                            <div className="w-full space-y-2">
+                                <Label htmlFor="assigned" className="text-sm font-medium">
+                                    Assigned To
+                                </Label>
+                                <Input
+                                    id="assigned"
+                                    value={log?.user?.name || 'Unassigned'}
+                                    className="w-full"
+                                    disabled
+                                    aria-label="Assigned user name"
+                                />
+                            </div>
+                        ) : (
+                            <div className="flex-1 space-y-2">
+                                <Label htmlFor="user_id" className="text-sm font-medium">
+                                    Assigned To
+                                </Label>
+                                <Select value={data.user_id} onValueChange={(value) => handleSelectChange('user_id', value)} name="user_id">
+                                    <SelectTrigger id="user_id" className={`w-full ${errors.user_id ? 'border-red-500' : ''}`}>
+                                        <SelectValue placeholder="Select a user">{selectedUser ? selectedUser.name : 'Select a user'}</SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Active Users</SelectLabel>
+                                            {availableUsers.map((user) => (
+                                                <SelectItem key={user.id} value={user.id}>
+                                                    {user.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                                {errors.user_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.user_id}</p>}
+                            </div>
+                        )}
                     </div>
                     <DialogFooter className="sm:justify-between">
                         <Button
