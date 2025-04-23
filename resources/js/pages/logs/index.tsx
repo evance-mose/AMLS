@@ -13,6 +13,7 @@ export default function Index({ data }) {
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedLog, setSelectedLog] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const breadcrumbs = [
         {
@@ -54,18 +55,19 @@ export default function Index({ data }) {
         setIsFormOpen(false);
     };
 
-    const handleEditLog = (log) => {
-        setSelectedLog(log);
-        setIsFormOpen(true);
-    };
-
     const handleDeleteLog = (logId) => {
-        if (confirm('Are you sure you want to delete this log?')) {
+        if (confirm('Are you sure you want to delete this user?')) {
             setLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId));
             router.delete(route('logs.destroy', logId), {
                 preserveScroll: true,
             });
         }
+    };
+
+    const handleEditLog = (log) => {
+        setSelectedLog(log);
+        setIsDialogOpen(true);
+        setIsFormOpen(true);
     };
 
     const getStatusBadge = (status) => {
@@ -234,7 +236,7 @@ export default function Index({ data }) {
                 </div>
             </div>
 
-            {isFormOpen && <LogFormDialog log={selectedLog} onSave={handleSaveLog} onClose={() => setIsFormOpen(false)} />}
+            {isFormOpen && <LogFormDialog log={selectedLog} isOpen={isDialogOpen} onSave={handleSaveLog} onClose={() => setIsFormOpen(false)} />}
         </AppLayout>
     );
 }

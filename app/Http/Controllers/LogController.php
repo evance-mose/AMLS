@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Log;
+use App\Models\User;
+use App\Models\Issue;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -55,14 +57,30 @@ class LogController extends Controller
      */
     public function update(Request $request, Log $log)
     {
-        //
+       
+         $validate = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+            "issue_id" =>'nullable|exists:issues,id',
+            'action_taken' => 'required|string|max:255',
+            'status' => 'required|in:pending,in_progress,resolved,closed',
+        ]);
+
+        $log->save($validate);
+
+        return redirect()->back()->with('success', 'Log updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Log $log)
+    public function destroy(string $id)
     {
-        //
+        try {
+            $log = Log::findOrFail($id);
+            $log->delete();
+            return redirect()->back()->with('success', 'Log deleted successfully.');
+        } catch (Exception $e) {
+            Log::error('log deletion failed: ' . $e->getMessage());
+        }
     }
 }
