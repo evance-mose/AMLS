@@ -17,6 +17,7 @@ class LogController extends Controller
     {
         return Inertia::render('logs/index', [
             'data' => Log::with(['user', 'issue'])->get(),
+            'issues' => Issue::all() 
         ]);
     }
 

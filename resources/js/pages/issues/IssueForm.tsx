@@ -125,7 +125,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="w-full space-y-2">
                                 <Label htmlFor="type" className="text-sm font-medium">
-                                    Issue Type
+                                    Issue
                                 </Label>
                                 <Select value={data.type} onValueChange={(value) => handleSelectChange('type', value)} name="type">
                                     <SelectTrigger id="type" className="w-full">
@@ -133,7 +133,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
-                                            <SelectLabel>Issue Type</SelectLabel>
+                                            <SelectLabel>Issue</SelectLabel>
                                             <SelectItem value="hardware">Hardware</SelectItem>
                                             <SelectItem value="software">Software</SelectItem>
                                             <SelectItem value="network">Network</SelectItem>

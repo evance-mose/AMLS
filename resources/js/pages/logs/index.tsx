@@ -7,7 +7,7 @@ import { AlertCircle, CheckCircle, Clock, Filter, Loader2, Plus, Search, XCircle
 import { useState } from 'react';
 import LogFormDialog from './LogForm';
 
-export default function Index({ data }) {
+export default function Index({ data, issues }) {
     const [logs, setLogs] = useState(data);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -139,6 +139,7 @@ export default function Index({ data }) {
                                 onClick={() => {
                                     setSelectedLog(null);
                                     setIsFormOpen(true);
+                                    setIsDialogOpen(true);
                                 }}
                                 className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
                             >
@@ -153,7 +154,8 @@ export default function Index({ data }) {
                     <Table>
                         <TableHeader className="bg-gray-50">
                             <TableRow>
-                                <TableHead className="font-medium text-gray-700">Fault Type</TableHead>
+                                <TableHead className="font-medium text-gray-700">ATM ID</TableHead>
+                                <TableHead className="font-medium text-gray-700">Issue</TableHead>
                                 <TableHead className="font-medium text-gray-700">Action Taken</TableHead>
                                 <TableHead className="font-medium text-gray-700">Status</TableHead>
                                 <TableHead className="font-medium text-gray-700">Assigned To</TableHead>
@@ -164,6 +166,7 @@ export default function Index({ data }) {
                             {filteredLogs.length > 0 ? (
                                 filteredLogs.map((log) => (
                                     <TableRow key={log.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                                        <TableCell className="font-medium text-gray-800">{log.issue?.atm_id || ''}</TableCell>
                                         <TableCell className="font-medium text-gray-800">{capitalizeEachWord(log.issue?.type || '')}</TableCell>
                                         <TableCell className="text-gray-600">{log.action_taken}</TableCell>
                                         <TableCell>{getStatusBadge(log.status)}</TableCell>
@@ -231,7 +234,9 @@ export default function Index({ data }) {
                 </div>
             </div>
 
-            {isFormOpen && <LogFormDialog log={selectedLog} isOpen={isDialogOpen} onSave={handleSaveLog} onClose={() => setIsFormOpen(false)} />}
+            {isFormOpen && (
+                <LogFormDialog log={selectedLog} isOpen={isDialogOpen} issues={issues} onSave={handleSaveLog} onClose={() => setIsFormOpen(false)} />
+            )}
         </AppLayout>
     );
 }
