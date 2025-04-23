@@ -4,12 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useForm } from '@inertiajs/react';
 import { Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
     const isEditMode = !!issue;
-    const [formData, setFormData] = useState({
+    const { data, setData, post, put, processing, errors, reset } = useForm({
         title: '',
         atm_id: '',
         type: 'hardware',
@@ -18,14 +19,11 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
         user_id: 'unassigned',
     });
 
-    const [errors, setErrors] = useState({});
     const [users, setUsers] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        // If we're editing an existing issue, populate the form
         if (issue) {
-            setFormData({
+            setData({
                 title: issue.title || '',
                 atm_id: issue.atm_id || '',
                 type: issue.type || 'hardware',
@@ -34,88 +32,45 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                 user_id: issue.user_id || 'unassigned',
             });
         } else {
-            // Reset form for a new issue
-            setFormData({
-                title: '',
-                atm_id: '',
-                type: 'hardware',
-                description: '',
-                status: 'pending',
-                user_id: 'unassigned',
-            });
+            reset();
         }
 
-        // Mock fetch users - in a real application, this would be an API call
         setUsers([
             { id: 1, name: 'John Doe' },
             { id: 2, name: 'Jane Smith' },
             { id: 3, name: 'Robert Johnson' },
             { id: 4, name: 'Emily Davis' },
         ]);
-    }, [issue]);
+    }, [issue, setData, reset]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-
-        // Clear error for this field when it's changed
-        if (errors[name]) {
-            setErrors((prev) => ({
-                ...prev,
-                [name]: '',
-            }));
-        }
+        setData(name, value);
     };
 
     const handleSelectChange = (name, value) => {
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-
-        // Clear error for this field when it's changed
-        if (errors[name]) {
-            setErrors((prev) => ({
-                ...prev,
-                [name]: '',
-            }));
-        }
+        setData(name, value);
     };
 
-    const validate = () => {
-        const newErrors = {};
-        if (!formData.title.trim()) newErrors.title = 'Title is required';
-        if (!formData.atm_id.trim()) newErrors.atm_id = 'ATM ID is required';
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        if (!validate()) return;
 
-        setIsLoading(true);
-
-        try {
-            // In a real app, this would be an API call
-            await new Promise((resolve) => setTimeout(resolve, 500));
-
-            // Convert 'unassigned' back to '' before saving if needed
-            const dataToSave = {
-                ...formData,
-                user_id: formData.user_id === 'unassigned' ? '' : formData.user_id,
-            };
-
-            onSave(dataToSave);
-        } catch (error) {
-            console.error('Error saving issue:', error);
-            // Handle error state or display error message
-        } finally {
-            setIsLoading(false);
+        if (isEditMode) {
+            put(route('issues.update', issue.id), {
+                onSuccess: () => {
+                    onSave(data);
+                    onClose();
+                    reset();
+                },
+            });
+        } else {
+            post(route('issues.store'), {
+                onSuccess: () => {
+                    onSave(data);
+                    onClose();
+                    reset();
+                },
+            });
         }
     };
 
@@ -143,7 +98,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 <Input
                                     id="title"
                                     name="title"
-                                    value={formData.title}
+                                    value={data.title}
                                     onChange={handleChange}
                                     className={`w-full ${errors.title ? 'border-red-500' : ''}`}
                                     aria-invalid={!!errors.title}
@@ -158,7 +113,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 <Input
                                     id="atm_id"
                                     name="atm_id"
-                                    value={formData.atm_id}
+                                    value={data.atm_id}
                                     onChange={handleChange}
                                     className={`w-full ${errors.atm_id ? 'border-red-500' : ''}`}
                                     aria-invalid={!!errors.atm_id}
@@ -172,7 +127,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 <Label htmlFor="type" className="text-sm font-medium">
                                     Issue Type
                                 </Label>
-                                <Select value={formData.type} onValueChange={(value) => handleSelectChange('type', value)} name="type">
+                                <Select value={data.type} onValueChange={(value) => handleSelectChange('type', value)} name="type">
                                     <SelectTrigger id="type" className="w-full">
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
@@ -187,13 +142,14 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
+                                {errors.type && <p className="mt-1 text-xs font-medium text-red-500">{errors.type}</p>}
                             </div>
 
                             <div className="w-full space-y-2">
                                 <Label htmlFor="status" className="text-sm font-medium">
                                     Status
                                 </Label>
-                                <Select value={formData.status} onValueChange={(value) => handleSelectChange('status', value)} name="status">
+                                <Select value={data.status} onValueChange={(value) => handleSelectChange('status', value)} name="status">
                                     <SelectTrigger id="status" className="w-full">
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
@@ -207,6 +163,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                         </SelectGroup>
                                     </SelectContent>
                                 </Select>
+                                {errors.status && <p className="mt-1 text-xs font-medium text-red-500">{errors.status}</p>}
                             </div>
                         </div>
 
@@ -214,7 +171,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                             <Label htmlFor="user_id" className="text-sm font-medium">
                                 Sender
                             </Label>
-                            <Select value={formData.user_id} onValueChange={(value) => handleSelectChange('user_id', value)} name="user_id">
+                            <Select value={data.user_id} onValueChange={(value) => handleSelectChange('user_id', value)} name="user_id">
                                 <SelectTrigger id="user_id" className="w-full">
                                     <SelectValue placeholder="Select user" />
                                 </SelectTrigger>
@@ -230,6 +187,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
+                            {errors.user_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.user_id}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -240,11 +198,12 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 id="description"
                                 name="description"
                                 placeholder="Describe the issue in detail"
-                                value={formData.description}
+                                value={data.description}
                                 onChange={handleChange}
                                 className="min-h-24 w-full"
                                 aria-describedby="description-help"
                             />
+                            {errors.description && <p className="mt-1 text-xs font-medium text-red-500">{errors.description}</p>}
                             <p id="description-help" className="text-xs text-gray-500">
                                 Provide detailed information about the issue to help with resolution.
                             </p>
@@ -257,7 +216,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                             variant="outline"
                             onClick={onClose}
                             className="flex items-center gap-1"
-                            disabled={isLoading}
+                            disabled={processing}
                             aria-label="Cancel form"
                         >
                             <X size={16} />
@@ -266,11 +225,11 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                         <Button
                             type="submit"
                             className="flex items-center gap-1 bg-black text-white hover:bg-gray-700"
-                            disabled={isLoading}
+                            disabled={processing}
                             aria-label={isEditMode ? 'Update issue' : 'Create issue'}
                         >
                             <Save size={16} />
-                            {isLoading ? 'Saving...' : isEditMode ? 'Update Issue' : 'Create Issue'}
+                            {processing ? 'Saving...' : isEditMode ? 'Update Issue' : 'Create Issue'}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Issue;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-
+use Illuminate\Support\Facades\Auth;
 class IssueController extends Controller
 {
     /**
@@ -33,7 +34,20 @@ class IssueController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'atm_id' => 'required|string|max:255',
+            'type' => 'required|in:hardware,software,network,security,other',
+            'description' => 'nullable|string',
+            'status' => 'required|in:pending,in_progress,resolved,closed',
+        ]);
+    
+        Issue::create([
+            ...$validated,
+            'user_id' => Auth()->id()
+        ]);
+    
+        return redirect()->back()->with('success', 'Issue created successfully.');
     }
 
     /**
@@ -57,14 +71,32 @@ class IssueController extends Controller
      */
     public function update(Request $request, Issue $issue)
     {
-        //
+        $validated = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+            'title' => 'required|string|max:255',
+            'atm_id' => 'required|string|max:255',
+            'type' => 'required|in:hardware,software,network,security,other',
+            'description' => 'nullable|string',
+            'status' => 'required|in:pending,in_progress,resolved,closed',
+        ]);
+
+        $issue->update($validated);
+
+        return redirect()->back()->with('success', 'Log updated successfully.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Issue $issue)
+    public function destroy(string $id)
     {
-        //
+        try {
+            $issue = Issue::findOrFail($id);
+            $issue->delete();
+            return redirect()->back()->with('success', 'Issue deleted successfully.');
+        } catch (Exception $e) {
+            Log::error('Issue deletion failed: ' . $e->getMessage());
+        }
     }
+    
 }
