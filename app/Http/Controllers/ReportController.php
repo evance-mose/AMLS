@@ -91,12 +91,24 @@ class ReportController extends Controller
                         ->get();
 
 
+        $latestIssues = Issue::whereMonth('created_at', $monthNum)
+                        ->whereYear('created_at', $year)
+                        ->with('user')
+                        ->latest()  
+                        ->take(5)  
+                        ->get();
 
         $logs = Log::whereMonth('created_at', $monthNum)
                     ->whereYear('created_at', $year)
                     ->with('User')
                     ->get();
 
+        $latestLogs = Log::whereMonth('created_at', $monthNum)
+                    ->whereYear('created_at', $year)
+                    ->with('user')
+                    ->latest()  
+                    ->take(5)  
+                    ->get();
 
         $users = User::all()->keyBy('id')->map(function ($user) {
             return [
@@ -108,7 +120,7 @@ class ReportController extends Controller
         });
 
         $totalIssues = $issues->count();
-        $resolvedIssues = $issues->where('status', 'esolved')->count();
+        $resolvedIssues = $issues->where('status', 'resolved')->count();
         $pendingIssues = $totalIssues - $resolvedIssues;
 
 
@@ -126,8 +138,8 @@ class ReportController extends Controller
                 'pending' => $pendingIssues,
                 'avgResolutionTime' => $avgResolutionTime,
             ],
-            'issues' => $issues,
-            'maintenanceLogs' => $logs,
+            'issues' => $latestIssues,
+            'maintenanceLogs' => $latestLogs,
             'users' => $users,
            
         ];
