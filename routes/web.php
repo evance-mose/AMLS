@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\IssueController;
+use App\Http\Middleware\RoleMiddleware;
 
 Route::get('/', function () {
     if (Auth::check()) {
@@ -17,10 +18,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
-    Route::resource('users', UserController::class);
-    Route::resource('logs', LogController::class);
-    Route::resource('issues', IssueController::class);
-    Route::resource('reports', ResourceController::class);
+
+    Route::middleware(RoleMiddleware::class.':admin,custodian,technician')->group(function () {
+        Route::resource('logs', LogController::class);
+        Route::resource('issues', IssueController::class);
+        Route::resource('reports', ResourceController::class);
+    });
+    
+    Route::middleware(RoleMiddleware::class.':admin')->group(function () {
+        Route::resource('users', UserController::class);
+     
+    });
 });
 
 Route::get('/reports/monthly', [ReportController::class, 'monthly'])
