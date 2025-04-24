@@ -4,11 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useForm } from '@inertiajs/react';
+import { SharedData } from '@/types';
+import { useForm, usePage } from '@inertiajs/react';
 import { Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
+    const { auth } = usePage<SharedData>().props;
     const isEditMode = !!issue;
     const { data, setData, post, put, processing, errors, reset } = useForm({
         title: '',
@@ -92,21 +94,6 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="w-full space-y-2">
-                                <Label htmlFor="title" className="text-sm font-medium">
-                                    Title <span className="text-red-500">*</span>
-                                </Label>
-                                <Input
-                                    id="title"
-                                    name="title"
-                                    value={data.title}
-                                    onChange={handleChange}
-                                    className={`w-full ${errors.title ? 'border-red-500' : ''}`}
-                                    aria-invalid={!!errors.title}
-                                />
-                                {errors.title && <p className="mt-1 text-xs font-medium text-red-500">{errors.title}</p>}
-                            </div>
-
-                            <div className="w-full space-y-2">
                                 <Label htmlFor="atm_id" className="text-sm font-medium">
                                     ATM ID <span className="text-red-500">*</span>
                                 </Label>
@@ -120,12 +107,9 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 />
                                 {errors.atm_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.atm_id}</p>}
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div className="w-full space-y-2">
                                 <Label htmlFor="type" className="text-sm font-medium">
-                                    Issue
+                                    Category
                                 </Label>
                                 <Select value={data.type} onValueChange={(value) => handleSelectChange('type', value)} name="type">
                                     <SelectTrigger id="type" className="w-full">
@@ -133,7 +117,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectGroup>
-                                            <SelectLabel>Issue</SelectLabel>
+                                            <SelectLabel>Category</SelectLabel>
                                             <SelectItem value="hardware">Hardware</SelectItem>
                                             <SelectItem value="software">Software</SelectItem>
                                             <SelectItem value="network">Network</SelectItem>
@@ -144,52 +128,22 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 </Select>
                                 {errors.type && <p className="mt-1 text-xs font-medium text-red-500">{errors.type}</p>}
                             </div>
-
-                            <div className="w-full space-y-2">
-                                <Label htmlFor="status" className="text-sm font-medium">
-                                    Status
-                                </Label>
-                                <Select value={data.status} onValueChange={(value) => handleSelectChange('status', value)} name="status">
-                                    <SelectTrigger id="status" className="w-full">
-                                        <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Status</SelectLabel>
-                                            <SelectItem value="pending">Pending</SelectItem>
-                                            <SelectItem value="in_progress">In Progress</SelectItem>
-                                            <SelectItem value="resolved">Resolved</SelectItem>
-                                            <SelectItem value="closed">Closed</SelectItem>
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                                {errors.status && <p className="mt-1 text-xs font-medium text-red-500">{errors.status}</p>}
-                            </div>
                         </div>
 
                         <div className="w-full space-y-2">
-                            <Label htmlFor="user_id" className="text-sm font-medium">
-                                Sender
+                            <Label htmlFor="title" className="text-sm font-medium">
+                                Title <span className="text-red-500">*</span>
                             </Label>
-                            <Select value={data.user_id} onValueChange={(value) => handleSelectChange('user_id', value)} name="user_id">
-                                <SelectTrigger id="user_id" className="w-full">
-                                    <SelectValue placeholder="Select user" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        <SelectLabel>Users</SelectLabel>
-                                        <SelectItem value="unassigned">Unassigned</SelectItem>
-                                        {users.map((user) => (
-                                            <SelectItem key={user.id} value={user.id.toString()}>
-                                                {user.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                            {errors.user_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.user_id}</p>}
+                            <Input
+                                id="title"
+                                name="title"
+                                value={data.title}
+                                onChange={handleChange}
+                                className={`w-full ${errors.title ? 'border-red-500' : ''}`}
+                                aria-invalid={!!errors.title}
+                            />
+                            {errors.title && <p className="mt-1 text-xs font-medium text-red-500">{errors.title}</p>}
                         </div>
-
                         <div className="space-y-2">
                             <Label htmlFor="description" className="text-sm font-medium">
                                 Description
@@ -208,6 +162,44 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 Provide detailed information about the issue to help with resolution.
                             </p>
                         </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="w-full space-y-2">
+                            <Label htmlFor="status" className="text-sm font-medium">
+                                Status
+                            </Label>
+                            <Select value={data.status} onValueChange={(value) => handleSelectChange('status', value)} name="status">
+                                <SelectTrigger id="status" className="w-full">
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Status</SelectLabel>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="in_progress">In Progress</SelectItem>
+                                        <SelectItem value="resolved">Resolved</SelectItem>
+                                        <SelectItem value="closed">Closed</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {errors.status && <p className="mt-1 text-xs font-medium text-red-500">{errors.status}</p>}
+                        </div>
+
+                        {isEditMode && (
+                            <div className="w-full space-y-2">
+                                <Label htmlFor="user_id" className="text-sm font-medium">
+                                    Reported By
+                                </Label>
+                                <Input
+                                    id="user_id"
+                                    name="user_id"
+                                    value={issue.user.name}
+                                    onChange={handleChange}
+                                    className={`w-full ${errors.atm_id ? 'border-red-500' : ''}`}
+                                    disabled
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <DialogFooter className="sm:justify-between">

@@ -170,9 +170,6 @@ export default function LogFormDialog({
                                         disabled
                                     />
                                     {errors.action_taken && <p className="mt-1 text-xs font-medium text-red-500">{errors.action_taken}</p>}
-                                    <p id="action-taken-description" className="text-xs text-gray-500">
-                                        Provide details about actions taken regarding this issue.
-                                    </p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="action_taken" className="text-sm font-medium">

@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
+import { SharedData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import LogFormDialog from './LogForm';
 
 export default function Index({ data, issues, users }) {
+    const { auth } = usePage<SharedData>().props;
     const [logs, setLogs] = useState(data);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -89,7 +91,7 @@ export default function Index({ data, issues, users }) {
                 classes: 'bg-amber-50 text-amber-700 border-amber-100',
             },
             in_progress: {
-                icon: <Loader2 size={16} className="animate-spin text-blue-600" />,
+                icon: <Loader2 size={16} className="text-blue-600" />,
                 text: 'In Progress',
                 classes: 'bg-blue-50 text-blue-700 border-blue-100',
             },
@@ -106,7 +108,6 @@ export default function Index({ data, issues, users }) {
     };
 
     const getIssueTypeIcon = (type) => {
-        // You can customize this with appropriate icons for each type
         const typeIcons = {
             hardware: <AlertCircle size={16} className="text-purple-600" />,
             software: <AlertCircle size={16} className="text-blue-600" />,
@@ -163,18 +164,19 @@ export default function Index({ data, issues, users }) {
                                 <option value="closed">Closed</option>
                             </select>
                         </div>
-
-                        <Button
-                            onClick={() => {
-                                setSelectedLog(null);
-                                setIsFormOpen(true);
-                                setIsDialogOpen(true);
-                            }}
-                            className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
-                        >
-                            <Plus size={16} />
-                            <span>New Log</span>
-                        </Button>
+                        {auth.user.role === 'admin' && (
+                            <Button
+                                onClick={() => {
+                                    setSelectedLog(null);
+                                    setIsFormOpen(true);
+                                    setIsDialogOpen(true);
+                                }}
+                                className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
+                            >
+                                <Plus size={16} />
+                                <span>Assign Log</span>
+                            </Button>
+                        )}
                     </div>
                 </div>
 
@@ -198,7 +200,11 @@ export default function Index({ data, issues, users }) {
                             <TableBody>
                                 {filteredLogs.length > 0 ? (
                                     filteredLogs.map((log) => (
-                                        <TableRow key={log.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                                        <TableRow
+                                            key={log.id}
+                                            onClick={() => handleEditLog(log)}
+                                            className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                                        >
                                             <TableCell className="font-medium text-gray-800">
                                                 {log.issue?.atm_id || ''}
                                                 <div className="text-xs text-gray-500">
@@ -234,14 +240,16 @@ export default function Index({ data, issues, users }) {
                                                     >
                                                         View
                                                     </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
-                                                        onClick={() => handleDeleteLog(log.id)}
-                                                    >
-                                                        Delete
-                                                    </Button>
+                                                    {auth.user.role === 'admin' && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
+                                                            onClick={() => handleDeleteLog(log.id)}
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>

@@ -71,7 +71,6 @@ export default function MonthlyReport({ initialData }) {
     const exportToCSV = () => {
         setIsExporting(true);
 
-        // Create CSV content for issues
         let issuesCsvContent = 'data:text/csv;charset=utf-8,';
         issuesCsvContent += 'ID,User,Title,ATM ID,Category,Description,Status,Date Reported\n';
         reportData.issues.forEach((issue) => {
@@ -81,14 +80,12 @@ export default function MonthlyReport({ initialData }) {
             issuesCsvContent += `"${issue.description}",${issue.status},${issue.created_at}\n`;
         });
 
-        // Create and trigger download for issues
         const encodedIssuesUri = encodeURI(issuesCsvContent);
         const issuesLink = document.createElement('a');
         issuesLink.setAttribute('href', encodedIssuesUri);
         issuesLink.setAttribute('download', `Issues_${selectedMonth}_${selectedYear}.csv`);
         document.body.appendChild(issuesLink);
 
-        // Create CSV content for maintenance logs
         let logsCsvContent = 'data:text/csv;charset=utf-8,';
         logsCsvContent += 'ID,Technician,Issue ID,Action Taken,Status,Date\n';
         reportData.maintenanceLogs.forEach((log) => {
@@ -97,14 +94,12 @@ export default function MonthlyReport({ initialData }) {
             logsCsvContent += `${log.id},"${userName}",${log.issue_id || 'N/A'},"${log.action_taken}",${log.status},${log.created_at}\n`;
         });
 
-        // Create and trigger download for logs
         const encodedLogsUri = encodeURI(logsCsvContent);
         const logsLink = document.createElement('a');
         logsLink.setAttribute('href', encodedLogsUri);
         logsLink.setAttribute('download', `Maintenance_Logs_${selectedMonth}_${selectedYear}.csv`);
         document.body.appendChild(logsLink);
 
-        // Trigger downloads with a slight delay between them
         setTimeout(() => {
             issuesLink.click();
             setTimeout(() => {
@@ -186,7 +181,6 @@ export default function MonthlyReport({ initialData }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Monthly Report" />
             <div className="flex flex-1 flex-col gap-5 p-4">
-                {/* Report Header with Period Selection */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Monthly Report</h1>

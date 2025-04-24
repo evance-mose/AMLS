@@ -94,7 +94,7 @@ export default function Index({ issues }) {
                 classes: 'bg-amber-50 text-amber-700 border-amber-100',
             },
             in_progress: {
-                icon: <Loader2 size={16} className="animate-spin text-blue-600" />,
+                icon: <Loader2 size={16} className="text-blue-600" />,
                 text: 'In Progress',
                 classes: 'bg-blue-50 text-blue-700 border-blue-100',
             },
