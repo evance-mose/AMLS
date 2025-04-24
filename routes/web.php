@@ -17,8 +17,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('logs', LogController::class);
     Route::resource('issues', IssueController::class);
-    
+    Route::resource('reports', ResourceController::class);
 });
+
+Route::get('/reports/monthly', [ReportController::class, 'monthly'])
+    ->name('reports.monthly');
+Route::get('/reports/monthly', [ReportController::class, 'apiMonthly']);
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
