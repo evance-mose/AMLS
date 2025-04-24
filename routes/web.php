@@ -7,7 +7,10 @@ use App\Http\Controllers\LogController;
 use App\Http\Controllers\IssueController;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    if (Auth::check()) {
+        return Inertia::render('dashboard');
+    }
+    return Inertia::render('auth/login');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
