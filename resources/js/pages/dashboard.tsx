@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,7 +6,23 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { AlertCircle, Calendar, CheckCircle, ClipboardList, Clock, Download, FileDown, PenTool } from 'lucide-react';
+import {
+    AlertCircle,
+    Calendar,
+    CheckCircle,
+    ClipboardList,
+    Clock,
+    Cpu,
+    Download,
+    FileDown,
+    Globe,
+    HardDrive,
+    HelpCircle,
+    Loader2,
+    PenTool,
+    Shield,
+    XCircle,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -102,29 +117,37 @@ export default function MonthlyReport({ initialData }) {
     };
 
     const getStatusBadge = (status) => {
-        switch (status) {
-            case 'Resolved':
-            case 'Completed':
-                return (
-                    <Badge variant="outline" className="bg-green-100 text-green-800">
-                        {status}
-                    </Badge>
-                );
-            case 'Pending':
-                return (
-                    <Badge variant="warning" className="bg-yellow-100 text-yellow-800">
-                        Pending
-                    </Badge>
-                );
-            case 'In Progress':
-                return (
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                        In Progress
-                    </Badge>
-                );
-            default:
-                return <Badge variant="secondary">{status}</Badge>;
-        }
+        const statusConfig = {
+            resolved: {
+                icon: <CheckCircle size={16} className="text-green-600" />,
+                text: 'Resolved',
+                classes: 'bg-green-50 text-green-700 border-green-100',
+            },
+            closed: {
+                icon: <XCircle size={16} className="text-gray-600" />,
+                text: 'Closed',
+                classes: 'bg-gray-50 text-gray-700 border-gray-100',
+            },
+            pending: {
+                icon: <Clock size={16} className="text-amber-600" />,
+                text: 'Pending',
+                classes: 'bg-amber-50 text-amber-700 border-amber-100',
+            },
+            in_progress: {
+                icon: <Loader2 size={16} className="animate-spin text-blue-600" />,
+                text: 'In Progress',
+                classes: 'bg-blue-50 text-blue-700 border-blue-100',
+            },
+        };
+
+        const config = statusConfig[status] || statusConfig.pending;
+
+        return (
+            <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>
+                {config.icon}
+                <span>{config.text}</span>
+            </div>
+        );
     };
 
     const getUserFullName = (userId) => {
@@ -143,6 +166,21 @@ export default function MonthlyReport({ initialData }) {
             </AppLayout>
         );
     }
+
+    const getCategoryIcon = (category) => {
+        switch (category) {
+            case 'hardware':
+                return <HardDrive className="h-5 w-5" />;
+            case 'software':
+                return <Cpu className="h-5 w-5" />;
+            case 'network':
+                return <Globe className="h-5 w-5" />;
+            case 'security':
+                return <Shield className="h-5 w-5" />;
+            default:
+                return <HelpCircle className="h-5 w-5" />;
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -184,7 +222,7 @@ export default function MonthlyReport({ initialData }) {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button onClick={exportToCSV} className="flex items-center gap-1 bg-green-600 hover:bg-green-700" disabled={isExporting}>
+                        <Button onClick={exportToCSV} className="flex items-center gap-1 bg-green-600 hover:bg-green-700" disabled>
                             {isExporting ? (
                                 <>
                                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -200,7 +238,6 @@ export default function MonthlyReport({ initialData }) {
                     </div>
                 </div>
 
-                {/* Summary Cards */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -289,7 +326,12 @@ export default function MonthlyReport({ initialData }) {
                                         <TableCell>{getUserFullName(issue.user_id)}</TableCell>
                                         <TableCell className="font-medium">{issue.title}</TableCell>
                                         <TableCell>{issue.atm_id}</TableCell>
-                                        <TableCell>{issue.category}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {getCategoryIcon(issue.type)}
+                                                <span className="capitalize">{issue.type}</span>
+                                            </div>
+                                        </TableCell>
                                         <TableCell>{getStatusBadge(issue.status)}</TableCell>
                                         <TableCell>{new Date(issue.created_at).toLocaleDateString()}</TableCell>
                                     </TableRow>
@@ -337,7 +379,7 @@ export default function MonthlyReport({ initialData }) {
                         <div className="text-sm text-gray-500">
                             {selectedMonth} {selectedYear} Report • Generated on {new Date(reportData.reportInfo.date).toLocaleDateString()}
                         </div>
-                        <Button onClick={exportToCSV} variant="outline" size="sm" className="flex items-center gap-1" disabled={isExporting}>
+                        <Button onClick={exportToCSV} variant="outline" size="sm" className="flex items-center gap-1" disabled>
                             <Download className="h-4 w-4" />
                             <span>Download CSV</span>
                         </Button>
