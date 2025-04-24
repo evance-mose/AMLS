@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -26,9 +27,9 @@ class UserController extends Controller
    
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        try {
+
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
@@ -42,16 +43,11 @@ class UserController extends Controller
                 'role' => $validated['role'],
                 'password' => Hash::make($validated['password']),
             ]);
+        
+            event(new Registered($user)); 
             
-            event(new Registered($user));
-            
-            Log::info('User created', ['id' => $user->id, 'email' => $user->email]);
-            
-            return to_route('users')->with('success', 'User created successfully!');
-        } catch (\Exception $e) {
-            Log::error('Failed to create user', ['error' => $e->getMessage()]);
-            return back()->withInput()->with('error', 'Failed to create user. Please try again.');
-        }
+        return redirect()->back()->with('success', 'User created successfully.');
+      
     }
 
     public function show(string $id)
@@ -64,10 +60,25 @@ class UserController extends Controller
         //
     }
 
-   
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id)
+            ],
+            'role' => 'required|in:admin,technician,custodian',
+            'status' => 'required|in:active,inactive'
+        ]);
+        
+        $user->update($validated);
+    
+        return redirect()->back()->with('success', 'User updated successfully.');
     }
 
    

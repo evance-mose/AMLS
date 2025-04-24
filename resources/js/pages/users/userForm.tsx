@@ -48,7 +48,6 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
         if (user) {
             put(route('users.update', user.id), {
                 onSuccess: () => {
