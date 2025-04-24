@@ -166,9 +166,9 @@ export default function Index({ issues }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Issue Management" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
-                <div className="flex flex-col justify-between gap-4 md:flex-row">
-                    <div className="flex flex-1 items-center gap-2">
-                        <div className="relative flex-1">
+                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                        <div className="relative w-full flex-1">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
                             <Input
                                 type="search"
@@ -179,43 +179,46 @@ export default function Index({ issues }) {
                             />
                         </div>
 
-                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                            <Filter size={16} className="text-gray-500" />
-                            <select
-                                className="bg-transparent text-sm text-gray-700 focus:outline-none"
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                            >
-                                <option value="all">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="in_progress">In Progress</option>
-                                <option value="resolved">Resolved</option>
-                                <option value="closed">Closed</option>
-                            </select>
+                        <div className="flex w-full flex-row gap-2 sm:w-auto">
+                            <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 sm:flex-initial">
+                                <Filter size={16} className="shrink-0 text-gray-500" />
+                                <select
+                                    className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="resolved">Resolved</option>
+                                    <option value="closed">Closed</option>
+                                </select>
+                            </div>
+
+                            <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 sm:flex-initial">
+                                <Filter size={16} className="shrink-0 text-gray-500" />
+                                <select
+                                    className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
+                                    value={typeFilter}
+                                    onChange={(e) => setTypeFilter(e.target.value)}
+                                >
+                                    <option value="all">All Types</option>
+                                    <option value="hardware">Hardware</option>
+                                    <option value="software">Software</option>
+                                    <option value="network">Network</option>
+                                    <option value="security">Security</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                            <Filter size={16} className="text-gray-500" />
-                            <select
-                                className="bg-transparent text-sm text-gray-700 focus:outline-none"
-                                value={typeFilter}
-                                onChange={(e) => setTypeFilter(e.target.value)}
-                            >
-                                <option value="all">All Types</option>
-                                <option value="hardware">Hardware</option>
-                                <option value="software">Software</option>
-                                <option value="network">Network</option>
-                                <option value="security">Security</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
                         <Button
                             onClick={() => {
                                 setSelectedIssue(null);
                                 setIsFormOpen(true);
                                 setIsDialogOpen(true);
                             }}
-                            className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
+                            className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
                         >
                             <Plus size={16} />
                             <span>New Issue</span>

@@ -136,9 +136,9 @@ export default function Index({ data, issues, users }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Log Management" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
-                <div className="flex flex-col justify-between gap-4 md:flex-row">
-                    <div className="flex flex-1 items-center gap-2">
-                        <div className="relative flex-1">
+                <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                        <div className="relative w-full flex-1">
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
                             <Input
                                 type="search"
@@ -148,10 +148,11 @@ export default function Index({ data, issues, users }) {
                                 onChange={handleSearchChange}
                             />
                         </div>
-                        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
-                            <Filter size={16} className="text-gray-500" />
+
+                        <div className="flex w-full items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 sm:w-auto">
+                            <Filter size={16} className="shrink-0 text-gray-500" />
                             <select
-                                className="bg-transparent text-sm text-gray-700 focus:outline-none"
+                                className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                             >
@@ -162,13 +163,14 @@ export default function Index({ data, issues, users }) {
                                 <option value="closed">Closed</option>
                             </select>
                         </div>
+
                         <Button
                             onClick={() => {
                                 setSelectedLog(null);
                                 setIsFormOpen(true);
                                 setIsDialogOpen(true);
                             }}
-                            className="flex items-center gap-2 bg-black text-white hover:bg-gray-700"
+                            className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
                         >
                             <Plus size={16} />
                             <span>New Log</span>

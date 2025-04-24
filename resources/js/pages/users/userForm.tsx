@@ -1,15 +1,13 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from '@inertiajs/react';
-import { Plus, Save, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Save, X } from 'lucide-react';
+import { useEffect } from 'react';
 
-export default function UserFormDialog({ user = null, onSave = () => {} }) {
-    const [open, setOpen] = useState(false);
-
+export default function UserFormDialog({ user = null, isOpen = false, onSave = () => {}, onClose = () => {} }) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: '',
         email: '',
@@ -18,6 +16,7 @@ export default function UserFormDialog({ user = null, onSave = () => {} }) {
         role: 'user',
         status: 'active',
     });
+
     useEffect(() => {
         if (user) {
             setData({
@@ -28,15 +27,24 @@ export default function UserFormDialog({ user = null, onSave = () => {} }) {
                 role: user.role || 'user',
                 status: user.status || 'active',
             });
-            setOpen(true);
+        } else if (isOpen) {
+            // Reset form for new user
+            setData({
+                name: '',
+                email: '',
+                password: '',
+                password_confirmation: '',
+                role: 'user',
+                status: 'active',
+            });
         }
-    }, [user]);
+    }, [user, isOpen]);
 
     useEffect(() => {
-        if (!open && !user) {
+        if (!isOpen) {
             reset('name', 'email', 'password', 'password_confirmation', 'role', 'status');
         }
-    }, [open]);
+    }, [isOpen]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -45,7 +53,7 @@ export default function UserFormDialog({ user = null, onSave = () => {} }) {
             put(route('users.update', user.id), {
                 onSuccess: () => {
                     onSave(data);
-                    setOpen(false);
+                    onClose();
                     reset();
                 },
             });
@@ -53,7 +61,7 @@ export default function UserFormDialog({ user = null, onSave = () => {} }) {
             post(route('users.store'), {
                 onSuccess: () => {
                     onSave(data);
-                    setOpen(false);
+                    onClose();
                     reset();
                 },
             });
@@ -63,14 +71,12 @@ export default function UserFormDialog({ user = null, onSave = () => {} }) {
     const isEditMode = !!user;
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="flex items-center gap-2 bg-black text-white hover:bg-gray-700">
-                    <Plus size={16} />
-                    <span>Add New User</span>
-                </Button>
-            </DialogTrigger>
-
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => {
+                if (!open) onClose();
+            }}
+        >
             <DialogContent className="sm:max-w-md md:max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="text-xl">{isEditMode ? 'Edit User' : 'Create New User'}</DialogTitle>
@@ -161,9 +167,8 @@ export default function UserFormDialog({ user = null, onSave = () => {} }) {
                                     <SelectGroup>
                                         <SelectLabel>Roles</SelectLabel>
                                         <SelectItem value="admin">Administrator</SelectItem>
-                                        <SelectItem value="manager">Manager</SelectItem>
-                                        <SelectItem value="user">Regular User</SelectItem>
-                                        <SelectItem value="guest">Guest</SelectItem>
+                                        <SelectItem value="technician">Technician</SelectItem>
+                                        <SelectItem value="custodian">Custodian</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
@@ -212,13 +217,7 @@ export default function UserFormDialog({ user = null, onSave = () => {} }) {
                     )}
 
                     <DialogFooter className="sm:justify-between">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setOpen(false)}
-                            className="flex items-center gap-1"
-                            disabled={processing}
-                        >
+                        <Button type="button" variant="outline" onClick={onClose} className="flex items-center gap-1" disabled={processing}>
                             <X size={16} />
                             Cancel
                         </Button>

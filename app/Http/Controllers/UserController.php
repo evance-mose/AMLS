@@ -32,12 +32,14 @@ class UserController extends Controller
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+                'role' => 'required|in:admin,technician,custodian',
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ]);
             
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'role' => $validated['role'],
                 'password' => Hash::make($validated['password']),
             ]);
             
