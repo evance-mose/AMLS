@@ -120,6 +120,10 @@ export default function LogFormDialog({
             setData('user_name', selected?.name || '');
         }
     };
+    function capitalizeWord(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
 
     return (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -148,7 +152,7 @@ export default function LogFormDialog({
                                         </Label>
                                         <Input
                                             id="assigned"
-                                            value={log?.issue?.type || 'Unassigned'}
+                                            value={capitalizeWord(log?.issue?.type) || 'Unassigned'}
                                             className="w-full"
                                             disabled
                                             aria-label="Assigned user name"
@@ -221,7 +225,13 @@ export default function LogFormDialog({
                                         <Label htmlFor="issue_type" className="text-sm font-medium">
                                             Category
                                         </Label>
-                                        <Input id="issue_type" value={selectedIssue?.type} className="w-full" disabled aria-label="Issue type" />
+                                        <Input
+                                            id="issue_type"
+                                            value={capitalizeWord(selectedIssue?.type)}
+                                            className="w-full"
+                                            disabled
+                                            aria-label="Issue type"
+                                        />
                                     </div>
                                     <div className="flex-1 space-y-2">
                                         <Label htmlFor="issue_date" className="text-sm font-medium">

@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield, XCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LogFormDialog from './LogForm';
 
 export default function Index({ data, issues, users }) {
@@ -28,6 +28,10 @@ export default function Index({ data, issues, users }) {
             href: '/logs',
         },
     ];
+
+    useEffect(() => {
+        setLogs(data);
+    }, [data]);
 
     const capitalizeEachWord = (str) => {
         return str
