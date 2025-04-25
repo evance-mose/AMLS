@@ -160,20 +160,19 @@ export default function LogFormDialog({
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="action_taken" className="text-sm font-medium">
+                                    <Label htmlFor="description" className="text-sm font-medium">
                                         Description
                                     </Label>
                                     <Textarea
-                                        id="action_taken"
+                                        id="description"
                                         placeholder="Describe actions taken for this issue"
                                         value={log?.issue.description}
                                         onChange={(e) => setData('action_taken', e.target.value)}
-                                        className={`min-h-16 w-full ${errors.action_taken ? 'border-red-500' : ''}`}
-                                        aria-invalid={!!errors.action_taken}
+                                        className={`min-h-16 w-full ${errors.description ? 'border-red-500' : ''}`}
                                         aria-describedby="description"
                                         disabled
                                     />
-                                    {errors.action_taken && <p className="mt-1 text-xs font-medium text-red-500">{errors.action_taken}</p>}
+                                    {errors.description && <p className="mt-1 text-xs font-medium text-red-500">{errors.description}</p>}
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="action_taken" className="text-sm font-medium">

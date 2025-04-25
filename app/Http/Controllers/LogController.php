@@ -76,7 +76,7 @@ class LogController extends Controller
             'status' => 'required|in:pending,in_progress,resolved,closed',
         ]);
 
-        $log->save($validate);
+        $log->update($validate);
 
         return redirect()->back()->with('success', 'Log updated successfully.');
     }
