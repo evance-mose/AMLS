@@ -5,7 +5,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield, XCircle } from 'lucide-react';
+import {
+    AlertCircle,
+    CheckCircle,
+    Clock,
+    Cpu,
+    Filter,
+    Flag,
+    Globe,
+    HardDrive,
+    HelpCircle,
+    Loader2,
+    Plus,
+    Search,
+    Shield,
+    XCircle,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import LogFormDialog from './LogForm';
 
@@ -14,6 +29,7 @@ export default function Index({ data, issues, users }) {
     const [logs, setLogs] = useState(data);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
     const [selectedLog, setSelectedLog] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -44,8 +60,10 @@ export default function Index({ data, issues, users }) {
         const matchesSearch =
             log.issue?.type?.toLowerCase().includes(searchTerm.toLowerCase()) || log.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        if (statusFilter === 'all') return matchesSearch;
-        return matchesSearch && log.status === statusFilter;
+        const matchesStatus = statusFilter === 'all' || log.status === statusFilter;
+        const matchesPriority = priorityFilter === 'all' || log.priority === priorityFilter;
+
+        return matchesSearch && matchesStatus && matchesPriority;
     });
 
     const handleSearchChange = (e) => {
@@ -102,6 +120,35 @@ export default function Index({ data, issues, users }) {
         };
 
         const config = statusConfig[status] || statusConfig.pending;
+
+        return (
+            <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>
+                {config.icon}
+                <span>{config.text}</span>
+            </div>
+        );
+    };
+
+    const getPriorityBadge = (priority) => {
+        const priorityConfig = {
+            high: {
+                icon: <Flag size={16} className="text-red-600" />,
+                text: 'High',
+                classes: 'bg-red-50 text-red-700 border-red-100',
+            },
+            medium: {
+                icon: <Flag size={16} className="text-amber-600" />,
+                text: 'Medium',
+                classes: 'bg-amber-50 text-amber-700 border-amber-100',
+            },
+            low: {
+                icon: <Flag size={16} className="text-blue-600" />,
+                text: 'Low',
+                classes: 'bg-blue-50 text-blue-700 border-blue-100',
+            },
+        };
+
+        const config = priorityConfig[priority] || priorityConfig.medium;
 
         return (
             <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>
@@ -168,6 +215,21 @@ export default function Index({ data, issues, users }) {
                                 <option value="closed">Closed</option>
                             </select>
                         </div>
+
+                        <div className="flex w-full items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 sm:w-auto">
+                            <Flag size={16} className="shrink-0 text-gray-500" />
+                            <select
+                                className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
+                                value={priorityFilter}
+                                onChange={(e) => setPriorityFilter(e.target.value)}
+                            >
+                                <option value="all">All Priority</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+
                         {auth.user.role === 'admin' && (
                             <Button
                                 onClick={() => {
@@ -196,6 +258,7 @@ export default function Index({ data, issues, users }) {
                                     <TableHead className="font-medium">ATM ID</TableHead>
                                     <TableHead className="font-medium">Category</TableHead>
                                     <TableHead className="font-medium">Action</TableHead>
+                                    <TableHead className="font-medium">Priority</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
                                     <TableHead className="font-medium">Assigned To</TableHead>
                                     <TableHead className="w-24 text-right font-medium">Actions</TableHead>
@@ -228,6 +291,7 @@ export default function Index({ data, issues, users }) {
                                                     {log.notes?.length > 40 ? '...' : ''}
                                                 </div>
                                             </TableCell>
+                                            <TableCell>{getPriorityBadge(log.priority || 'medium')}</TableCell>
                                             <TableCell>{getStatusBadge(log.status)}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
@@ -240,7 +304,10 @@ export default function Index({ data, issues, users }) {
                                                         variant="outline"
                                                         size="sm"
                                                         className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
-                                                        onClick={() => handleEditLog(log)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEditLog(log);
+                                                        }}
                                                     >
                                                         View
                                                     </Button>
@@ -249,7 +316,10 @@ export default function Index({ data, issues, users }) {
                                                             variant="outline"
                                                             size="sm"
                                                             className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
-                                                            onClick={() => handleDeleteLog(log.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteLog(log.id);
+                                                            }}
                                                         >
                                                             Delete
                                                         </Button>
@@ -260,7 +330,7 @@ export default function Index({ data, issues, users }) {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-32 text-center">
+                                        <TableCell colSpan={7} className="h-32 text-center">
                                             <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
                                                 <AlertCircle size={24} />
                                                 <p>No logs found matching your search criteria</p>
