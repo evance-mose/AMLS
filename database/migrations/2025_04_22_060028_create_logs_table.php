@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('issue_id')->nullable()->constrained()->onDelete('cascade');
             $table->text('action_taken')->nullable();
             $table->enum('status', ['pending', 'in_progress', 'resolved', 'closed'])->default('pending');
+            $table->enum('priority', ['low', 'medium', 'high'])->default('low');
             $table->timestamps();
         });
     }

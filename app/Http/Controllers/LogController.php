@@ -40,6 +40,7 @@ class LogController extends Controller
             "issue_id" =>'nullable|exists:issues,id',
             'action_taken' => 'nullable|string|max:255',
             'status' => 'required|in:pending,in_progress,resolved,closed',
+            'priority' => 'required|in:low,medium,high',
         ]);
 
         Log::create($validate);
@@ -74,6 +75,7 @@ class LogController extends Controller
             "issue_id" =>'nullable|exists:issues,id',
             'action_taken' => 'required|string|max:255',
             'status' => 'required|in:pending,in_progress,resolved,closed',
+            'priority' => 'required|in:low,medium,high',
         ]);
 
         $log->update($validate);

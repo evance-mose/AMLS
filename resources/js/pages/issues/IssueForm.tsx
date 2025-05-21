@@ -204,7 +204,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
-                            {errors.priority && <p className="mt-1 text-xs font-medium text-red-500">{errors.status}</p>}
+                            {errors.priority && <p className="mt-1 text-xs font-medium text-red-500">{errors.priority}</p>}
                         </div>
 
                         {isEditMode && (

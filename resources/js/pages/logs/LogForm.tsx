@@ -28,6 +28,7 @@ export default function LogFormDialog({
         user_id: '',
         issue_id: '',
         action_taken: '',
+        priority: 'low',
         status: 'pending',
         issue_title: '',
         issue_type: '',
@@ -43,11 +44,11 @@ export default function LogFormDialog({
                 issue_id: log.issue_id || '',
                 action_taken: log.action_taken || '',
                 status: log.status || 'pending',
-                issue_title: log.issue?.title || '',
-                issue_type: log.issue?.type || '',
+                issue_type: log.issue?.category || '',
                 atm_id: log.issue?.atm_id || '',
                 description: log.issue?.description || '',
                 user_name: log.user?.name || '',
+                priority: log.priority || '',
             });
             if (log.issue_id) {
                 const issue = users.find((i) => i.id === log.issue_id);
@@ -152,7 +153,7 @@ export default function LogFormDialog({
                                         </Label>
                                         <Input
                                             id="assigned"
-                                            value={capitalizeWord(log?.issue?.type) || 'Unassigned'}
+                                            value={capitalizeWord(log?.issue?.category) || 'Unassigned'}
                                             className="w-full"
                                             disabled
                                             aria-label="Assigned user name"
@@ -226,7 +227,7 @@ export default function LogFormDialog({
                                         </Label>
                                         <Input
                                             id="issue_type"
-                                            value={capitalizeWord(selectedIssue?.type)}
+                                            value={capitalizeWord(selectedIssue?.category.replace(/_/g, ' '))}
                                             className="w-full"
                                             disabled
                                             aria-label="Issue type"
@@ -296,6 +297,25 @@ export default function LogFormDialog({
                             <p id="status-description" className="text-xs text-gray-500">
                                 Current status of the issue.
                             </p>
+                        </div>
+                        <div className="w-full space-y-2">
+                            <Label htmlFor="status" className="text-sm font-medium">
+                                Priority level
+                            </Label>
+                            <Select value={data.priority} onValueChange={(value) => handleSelectChange('status', value)} name="status">
+                                <SelectTrigger id="priority" className="w-full">
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Priority Level</SelectLabel>
+                                        <SelectItem value="high">High</SelectItem>
+                                        <SelectItem value="medium">Medium</SelectItem>
+                                        <SelectItem value="low">Low</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {errors.priority && <p className="mt-1 text-xs font-medium text-red-500">{errors.priority}</p>}
                         </div>
                         {isEditMode ? (
                             <div className="w-full space-y-2">
