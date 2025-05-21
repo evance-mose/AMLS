@@ -10,7 +10,7 @@ class Issue extends Model
 {
     use HasFactory;
     
-    protected $fillable = ['user_id', 'title', "atm_id", 'type', 'description', 'status'];
+    protected $fillable = ['user_id', 'location', "atm_id", 'category', 'description', 'status', 'priority'];
 
     public function user()
     {

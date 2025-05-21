@@ -14,11 +14,12 @@ class IssueFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'title' => $this->faker->sentence(),
+            'location' => $this->faker->city(),
             'atm_id' => $this->faker->unique()->bothify('ATM####'),
             'type' => $this->faker->randomElement(['hardware', 'software', 'network', 'security', 'other']),
             'description' => $this->faker->paragraph(),
             'status' => $this->faker->randomElement(['pending', 'in_progress', 'resolved', 'closed']),
+            'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
         ];
     }
 }

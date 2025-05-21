@@ -35,11 +35,13 @@ class IssueController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
             'atm_id' => 'required|string|max:255',
-            'type' => 'required|in:hardware,software,network,security,other',
+            'category' => 'required|in:dispenser_errors,card_reader_errors,receipt_printer_errors,epp_errors,pc_core_errors,journal_printer_errors,recycling_module_errors,other',
             'description' => 'nullable|string',
             'status' => 'required|in:pending,in_progress,resolved,closed',
+            'priority' => 'required|in:low,medium,high',
+            
         ]);
     
         Issue::create([
@@ -73,11 +75,12 @@ class IssueController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'nullable|exists:users,id',
-            'title' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
             'atm_id' => 'required|string|max:255',
-            'type' => 'required|in:hardware,software,network,security,other',
+            'category' => 'required|in:dispenser_errors,card_reader_errors,receipt_printer_errors,epp_erros,pc_core_errors,journal_printer_errors,recycling_module_errors,other',
             'description' => 'nullable|string',
-            'status' => 'required|in:pending,in_progress,resolved,closed',
+            'status' => 'required|in:pending,acknowledged,resolved,closed',
+            'priority' => 'required|in:low,medium,high',
         ]);
 
         $issue->update($validated);

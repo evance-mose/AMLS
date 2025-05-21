@@ -13,11 +13,12 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
     const { auth } = usePage<SharedData>().props;
     const isEditMode = !!issue;
     const { data, setData, post, put, processing, errors, reset } = useForm({
-        title: '',
         atm_id: '',
-        type: 'hardware',
+        location: '',
+        category: 'epp_errors',
         description: '',
         status: 'pending',
+        priority: 'low',
         user_id: 'unassigned',
     });
 
@@ -26,12 +27,13 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
     useEffect(() => {
         if (issue) {
             setData({
-                title: issue.title || '',
+                location: issue.location || '',
                 atm_id: issue.atm_id || '',
-                type: issue.type || 'hardware',
+                category: issue.category || 'hardware',
                 description: issue.description || '',
                 status: issue.status || 'pending',
                 user_id: issue.user_id || 'unassigned',
+                priority: issue.priority || '',
             });
         } else {
             reset();
@@ -108,41 +110,43 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                 {errors.atm_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.atm_id}</p>}
                             </div>
                             <div className="w-full space-y-2">
-                                <Label htmlFor="type" className="text-sm font-medium">
-                                    Category
+                                <Label htmlFor="location" className="text-sm font-medium">
+                                    Location <span className="text-red-500">*</span>
                                 </Label>
-                                <Select value={data.type} onValueChange={(value) => handleSelectChange('type', value)} name="type">
-                                    <SelectTrigger id="type" className="w-full">
-                                        <SelectValue placeholder="Select type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            <SelectLabel>Category</SelectLabel>
-                                            <SelectItem value="hardware">Hardware</SelectItem>
-                                            <SelectItem value="software">Software</SelectItem>
-                                            <SelectItem value="network">Network</SelectItem>
-                                            <SelectItem value="security">Security</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                                {errors.type && <p className="mt-1 text-xs font-medium text-red-500">{errors.type}</p>}
+                                <Input
+                                    id="location"
+                                    name="location"
+                                    value={data.location}
+                                    onChange={handleChange}
+                                    className={`w-full ${errors.location ? 'border-red-500' : ''}`}
+                                    aria-invalid={!!errors.location}
+                                />
+                                {errors.location && <p className="mt-1 text-xs font-medium text-red-500">{errors.location}</p>}
                             </div>
                         </div>
-
                         <div className="w-full space-y-2">
-                            <Label htmlFor="title" className="text-sm font-medium">
-                                Title <span className="text-red-500">*</span>
+                            <Label htmlFor="type" className="text-sm font-medium">
+                                Category
                             </Label>
-                            <Input
-                                id="title"
-                                name="title"
-                                value={data.title}
-                                onChange={handleChange}
-                                className={`w-full ${errors.title ? 'border-red-500' : ''}`}
-                                aria-invalid={!!errors.title}
-                            />
-                            {errors.title && <p className="mt-1 text-xs font-medium text-red-500">{errors.title}</p>}
+                            <Select value={data.category} onValueChange={(value) => handleSelectChange('type', value)} name="type">
+                                <SelectTrigger id="type" className="w-full">
+                                    <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Category</SelectLabel>
+                                        <SelectItem value="dispenser_errors">Dispenser Errors</SelectItem>
+                                        <SelectItem value="card_reader_errors">Card Reader Errors</SelectItem>
+                                        <SelectItem value="receipt_printer_errors">Receipt Printer Errors</SelectItem>
+                                        <SelectItem value="epp_errors">EPP Errors</SelectItem>
+                                        <SelectItem value="pc_core_errors">PC Core Errors</SelectItem>
+                                        <SelectItem value="journal_printer_errors">Journal Printer Errors</SelectItem>
+                                        <SelectItem value="recycling_module_errors">Recycling Module Errors</SelectItem>
+                                        <SelectItem value="other">Other</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {errors.category && <p className="mt-1 text-xs font-medium text-red-500">{errors.category}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="description" className="text-sm font-medium">
@@ -176,13 +180,31 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                                     <SelectGroup>
                                         <SelectLabel>Status</SelectLabel>
                                         <SelectItem value="pending">Pending</SelectItem>
-                                        <SelectItem value="in_progress">In Progress</SelectItem>
+                                        <SelectItem value="acknowledged">Acknowledged</SelectItem>
                                         <SelectItem value="resolved">Resolved</SelectItem>
-                                        <SelectItem value="closed">Closed</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
                             {errors.status && <p className="mt-1 text-xs font-medium text-red-500">{errors.status}</p>}
+                        </div>
+                        <div className="w-full space-y-2">
+                            <Label htmlFor="status" className="text-sm font-medium">
+                                Priority level
+                            </Label>
+                            <Select value={data.priority} onValueChange={(value) => handleSelectChange('status', value)} name="status">
+                                <SelectTrigger id="priority" className="w-full">
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Priority Level</SelectLabel>
+                                        <SelectItem value="high">High</SelectItem>
+                                        <SelectItem value="medium">Medium</SelectItem>
+                                        <SelectItem value="low">Low</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {errors.priority && <p className="mt-1 text-xs font-medium text-red-500">{errors.status}</p>}
                         </div>
 
                         {isEditMode && (

@@ -42,7 +42,7 @@ export default function Index({ issues }) {
             issue.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
-        const matchesType = typeFilter === 'all' || issue.type === typeFilter;
+        const matchesType = typeFilter === 'all' || issue.category === typeFilter;
 
         return matchesSearch && matchesStatus && matchesType;
     });
@@ -236,7 +236,7 @@ export default function Index({ issues }) {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className="font-medium">ATM ID</TableHead>
-                                    <TableHead className="font-medium">Issue</TableHead>
+                                    <TableHead className="font-medium">Location</TableHead>
                                     <TableHead className="font-medium">Category</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
                                     <TableHead className="w-24 text-right font-medium">Actions</TableHead>
@@ -252,16 +252,11 @@ export default function Index({ issues }) {
                                                     {issue.created_at ? new Date(issue.created_at).toLocaleDateString() : 'No date'}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="font-medium">
-                                                {issue.title}
-                                                <div className="text-xs text-gray-500">
-                                                    {issue.description?.substring(0, 40) || 'No description'}...
-                                                </div>
-                                            </TableCell>
+                                            <TableCell className="font-medium">{issue.location}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    {getCategoryIcon(issue.type)}
-                                                    <span className="capitalize">{issue.type}</span>
+                                                    {getCategoryIcon(issue.category)}
+                                                    <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>{getStatusBadge(issue.status)}</TableCell>
