@@ -15,6 +15,7 @@ import {
     Cpu,
     Download,
     FileDown,
+    Flag,
     Globe,
     HardDrive,
     HelpCircle,
@@ -177,6 +178,35 @@ export default function MonthlyReport({ initialData }) {
         }
     };
 
+    const getPriorityBadge = (priority) => {
+        const priorityConfig = {
+            high: {
+                icon: <Flag size={16} className="text-red-600" />,
+                text: 'High',
+                classes: 'bg-red-50 text-red-700 border-red-100',
+            },
+            medium: {
+                icon: <Flag size={16} className="text-amber-600" />,
+                text: 'Medium',
+                classes: 'bg-amber-50 text-amber-700 border-amber-100',
+            },
+            low: {
+                icon: <Flag size={16} className="text-blue-600" />,
+                text: 'Low',
+                classes: 'bg-blue-50 text-blue-700 border-blue-100',
+            },
+        };
+
+        const config = priorityConfig[priority?.toLowerCase()] || priorityConfig.medium;
+
+        return (
+            <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>
+                {config.icon}
+                <span>{config.text}</span>
+            </div>
+        );
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Monthly Report" />
@@ -310,7 +340,7 @@ export default function MonthlyReport({ initialData }) {
                                     <TableHead>ATM ID</TableHead>
                                     <TableHead>Category</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Date</TableHead>
+                                    <TableHead>Priority</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -326,8 +356,8 @@ export default function MonthlyReport({ initialData }) {
                                                 <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
                                             </div>
                                         </TableCell>
+                                        <TableCell>{getPriorityBadge(issue.priority || 'medium')}</TableCell>
                                         <TableCell>{getStatusBadge(issue.status)}</TableCell>
-                                        <TableCell>{new Date(issue.created_at).toLocaleDateString()}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -351,8 +381,8 @@ export default function MonthlyReport({ initialData }) {
                                     <TableHead>Technician</TableHead>
                                     <TableHead>Issue ID</TableHead>
                                     <TableHead>Action Taken</TableHead>
+                                    <TableHead>Priority</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Date</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -362,8 +392,8 @@ export default function MonthlyReport({ initialData }) {
                                         <TableCell>{getUserFullName(log.user_id)}</TableCell>
                                         <TableCell>{log.issue_id || '-'}</TableCell>
                                         <TableCell className="font-medium">{log.action_taken}</TableCell>
+                                        <TableCell>{getPriorityBadge(log.priority || 'medium')}</TableCell>
                                         <TableCell>{getStatusBadge(log.status)}</TableCell>
-                                        <TableCell>{new Date(log.created_at).toLocaleDateString()}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
