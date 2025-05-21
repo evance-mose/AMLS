@@ -306,7 +306,7 @@ export default function MonthlyReport({ initialData }) {
                                 <TableRow>
                                     <TableHead>ID</TableHead>
                                     <TableHead>Reported By</TableHead>
-                                    <TableHead>Title</TableHead>
+                                    <TableHead>Location</TableHead>
                                     <TableHead>ATM ID</TableHead>
                                     <TableHead>Category</TableHead>
                                     <TableHead>Status</TableHead>
@@ -318,12 +318,12 @@ export default function MonthlyReport({ initialData }) {
                                     <TableRow key={issue.id}>
                                         <TableCell className="font-mono text-sm">{issue.id}</TableCell>
                                         <TableCell>{getUserFullName(issue.user_id)}</TableCell>
-                                        <TableCell className="font-medium">{issue.title}</TableCell>
+                                        <TableCell className="font-medium">{issue.location}</TableCell>
                                         <TableCell>{issue.atm_id}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                {getCategoryIcon(issue.type)}
-                                                <span className="capitalize">{issue.type}</span>
+                                                {getCategoryIcon(issue.category)}
+                                                <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>{getStatusBadge(issue.status)}</TableCell>
