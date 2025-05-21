@@ -24,7 +24,7 @@ export default function Index({ data, issues, users }) {
             href: '/dashboard',
         },
         {
-            title: 'Logs',
+            title: 'Audit logs',
             href: '/logs',
         },
     ];

@@ -216,7 +216,7 @@ export default function MonthlyReport({ initialData }) {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <Button onClick={exportToCSV} className="flex items-center gap-1 bg-green-600 hover:bg-green-700" disabled>
+                        <Button onClick={exportToCSV} className="flex items-center gap-1 bg-green-600 hover:bg-green-700">
                             {isExporting ? (
                                 <>
                                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -373,7 +373,7 @@ export default function MonthlyReport({ initialData }) {
                         <div className="text-sm text-gray-500">
                             {selectedMonth} {selectedYear} Report • Generated on {new Date(reportData.reportInfo.date).toLocaleDateString()}
                         </div>
-                        <Button onClick={exportToCSV} variant="outline" size="sm" className="flex items-center gap-1" disabled>
+                        <Button onClick={exportToCSV} variant="outline" size="sm" className="flex items-center gap-1">
                             <Download className="h-4 w-4" />
                             <span>Download CSV</span>
                         </Button>
