@@ -4,7 +4,22 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield, XCircle } from 'lucide-react';
+import {
+    AlertCircle,
+    CheckCircle,
+    Clock,
+    Cpu,
+    Filter,
+    Flag,
+    Globe,
+    HardDrive,
+    HelpCircle,
+    Loader2,
+    Plus,
+    Search,
+    Shield,
+    XCircle,
+} from 'lucide-react';
 import { useState } from 'react';
 import IssueFormDialog from './IssueForm';
 
@@ -13,6 +28,7 @@ export default function Index({ issues }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
     const [selectedIssue, setSelectedIssue] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -43,8 +59,9 @@ export default function Index({ issues }) {
 
         const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
         const matchesType = typeFilter === 'all' || issue.category === typeFilter;
+        const matchesPriority = priorityFilter === 'all' || issue.priority === priorityFilter;
 
-        return matchesSearch && matchesStatus && matchesType;
+        return matchesSearch && matchesStatus && matchesType && matchesPriority;
     });
 
     const handleSearchChange = (e) => {
@@ -101,6 +118,35 @@ export default function Index({ issues }) {
         };
 
         const config = statusConfig[status] || statusConfig.pending;
+
+        return (
+            <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>
+                {config.icon}
+                <span>{config.text}</span>
+            </div>
+        );
+    };
+
+    const getPriorityBadge = (priority) => {
+        const priorityConfig = {
+            high: {
+                icon: <Flag size={16} className="text-red-600" />,
+                text: 'High',
+                classes: 'bg-red-50 text-red-700 border-red-100',
+            },
+            medium: {
+                icon: <Flag size={16} className="text-amber-600" />,
+                text: 'Medium',
+                classes: 'bg-amber-50 text-amber-700 border-amber-100',
+            },
+            low: {
+                icon: <Flag size={16} className="text-blue-600" />,
+                text: 'Low',
+                classes: 'bg-blue-50 text-blue-700 border-blue-100',
+            },
+        };
+
+        const config = priorityConfig[priority] || priorityConfig.medium;
 
         return (
             <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>
@@ -210,6 +256,20 @@ export default function Index({ issues }) {
                                     <option value="other">Other</option>
                                 </select>
                             </div>
+
+                            <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 sm:flex-initial">
+                                <Flag size={16} className="shrink-0 text-gray-500" />
+                                <select
+                                    className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
+                                    value={priorityFilter}
+                                    onChange={(e) => setPriorityFilter(e.target.value)}
+                                >
+                                    <option value="all">All Priority</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
                         </div>
 
                         <Button
@@ -238,6 +298,7 @@ export default function Index({ issues }) {
                                     <TableHead className="font-medium">ATM ID</TableHead>
                                     <TableHead className="font-medium">Location</TableHead>
                                     <TableHead className="font-medium">Category</TableHead>
+                                    <TableHead className="font-medium">Priority</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
                                     <TableHead className="w-24 text-right font-medium">Actions</TableHead>
                                 </TableRow>
@@ -259,8 +320,8 @@ export default function Index({ issues }) {
                                                     <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
                                                 </div>
                                             </TableCell>
+                                            <TableCell>{getPriorityBadge(issue.priority || 'medium')}</TableCell>
                                             <TableCell>{getStatusBadge(issue.status)}</TableCell>
-
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
