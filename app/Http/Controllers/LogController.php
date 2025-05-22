@@ -8,6 +8,7 @@ use App\Models\Issue;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Notifications\IssueAssigned;
+use App\Notifications\IssueResolved;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
 
@@ -41,7 +42,6 @@ class LogController extends Controller
                 $assignedUser = User::find($log->user_id);
                 $issue = Issue::find($log->issue_id);
                 
-              
                 Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
                
                 $issue->update(['status' => 'acknowledged']);
@@ -63,13 +63,31 @@ class LogController extends Controller
         ]);
 
         $oldUserId = $log->user_id;
-        $log->update($validate);
+        $oldStatus = $log->status;
+        
+        DB::transaction(function () use ($validate, $log, $oldUserId, $oldStatus) {
+            $log->update($validate);
 
-        // Send notification if user is assigned or changed
-        if ($log->user_id && ($oldUserId !== $log->user_id)) {
-            $assignedUser = User::find($log->user_id);
-            Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
-        }
+            if ($log->user_id && ($oldUserId !== $log->user_id)) {
+                $assignedUser = User::find($log->user_id);
+                Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
+            }
+
+            if ($log->issue_id && $validate['status'] === 'resolved' && $oldStatus !== 'resolved') {
+                $issue = Issue::find($log->issue_id);
+                if ($issue) {
+                    $issue->update(['status' => 'resolved']);
+                    
+                    // Send notification to issue reporter that issue has been resolved
+                    if ($issue->user_id) {
+                        $issueReporter = User::find($issue->user_id);
+                        if ($issueReporter) {
+                            Notification::send($issueReporter, new IssueResolved($issue, $log));
+                        }
+                    }
+                }
+            }
+        });
 
         return redirect()->back()->with('success', 'Log updated successfully.');
     }

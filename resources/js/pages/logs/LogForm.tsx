@@ -37,6 +37,7 @@ export default function LogFormDialog({
         user_name: '',
     });
 
+    // Fix 1: Remove data from dependency array to prevent infinite loop
     useEffect(() => {
         if (log) {
             setData({
@@ -51,23 +52,25 @@ export default function LogFormDialog({
                 priority: log.priority || '',
             });
             if (log.issue_id) {
-                const issue = users.find((i) => i.id === log.issue_id);
+                // Fix 2: Use issues instead of users to find the issue
+                const issue = issues.find((i) => i.id === log.issue_id);
                 setSelectedIssue(issue || null);
             }
+            if (log.user_id) {
+                const user = users.find((u) => u.id === log.user_id);
+                setSelectedUser(user || null);
+            }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [log, availableIssues]);
+    }, [log, issues, users, setData]); // Removed data from dependencies
 
+    // Fix 3: Separate effect for dialog close handling
     useEffect(() => {
         if (!isOpen) {
             reset();
             setSelectedIssue(null);
             setSelectedUser(null);
-            if (onClose) {
-                onClose();
-            }
         }
-    }, [isOpen, onClose, reset, data]);
+    }, [isOpen, reset]); // Removed data and onClose from dependencies
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -112,15 +115,27 @@ export default function LogFormDialog({
 
         if (name === 'issue_id') {
             const selected = availableIssues.find((i) => i.id === parseInt(value));
-            setData('atm_id', selected?.atm_id || '');
             setSelectedIssue(selected || null);
+            // Fix 4: Update atm_id separately to avoid conflicts
+            if (selected) {
+                setData('atm_id', selected.atm_id || '');
+            }
         }
         if (name === 'user_id') {
             const selected = users.find((u) => u.id == parseInt(value));
             setSelectedUser(selected || null);
-            setData('user_name', selected?.name || '');
+            // Fix 5: Update user_name separately
+            if (selected) {
+                setData('user_name', selected.name || '');
+            }
         }
     };
+
+    // Fix 6: Handle priority change separately
+    const handlePriorityChange = (value) => {
+        setData('priority', value);
+    };
+
     function capitalizeWord(str) {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
@@ -145,7 +160,13 @@ export default function LogFormDialog({
                                         <Label htmlFor="date" className="text-sm font-medium">
                                             ATM ID
                                         </Label>
-                                        <Input id="atm_id" value={log?.issue?.atm_id} className="w-full" disabled aria-label="Log creation date" />
+                                        <Input
+                                            id="atm_id"
+                                            value={log?.issue?.atm_id || ''}
+                                            className="w-full"
+                                            disabled
+                                            aria-label="Log creation date"
+                                        />
                                     </div>
                                     <div className="w-full space-y-2">
                                         <Label htmlFor="assigned" className="text-sm font-medium">
@@ -153,8 +174,8 @@ export default function LogFormDialog({
                                         </Label>
                                         <Input
                                             id="assigned"
-                                            value={capitalizeWord(log?.issue?.category) || 'Unassigned'}
-                                            className="w-full"
+                                            value={log?.issue.category.replace(/_/g, ' ') || 'Unassigned'}
+                                            className="w-full uppercase"
                                             disabled
                                             aria-label="Assigned user name"
                                         />
@@ -167,8 +188,7 @@ export default function LogFormDialog({
                                     <Textarea
                                         id="description"
                                         placeholder="Describe actions taken for this issue"
-                                        value={log?.issue.description}
-                                        onChange={(e) => setData('action_taken', e.target.value)}
+                                        value={log?.issue?.description || ''}
                                         className={`min-h-16 w-full ${errors.description ? 'border-red-500' : ''}`}
                                         aria-describedby="description"
                                         disabled
@@ -200,7 +220,11 @@ export default function LogFormDialog({
                                     <Label htmlFor="issue_id" className="text-sm font-medium">
                                         ATM ID
                                     </Label>
-                                    <Select value={data.issue_id} onValueChange={(value) => handleSelectChange('issue_id', value)} name="issue_id">
+                                    <Select
+                                        value={data.issue_id.toString()}
+                                        onValueChange={(value) => handleSelectChange('issue_id', value)}
+                                        name="issue_id"
+                                    >
                                         <SelectTrigger id="issue_id" className={`w-full ${errors.issue_id ? 'border-red-500' : ''}`}>
                                             <SelectValue placeholder="Select an issue">
                                                 {selectedIssue ? `#${selectedIssue.atm_id}` : 'Select an issue'}
@@ -211,12 +235,14 @@ export default function LogFormDialog({
                                                 <SelectLabel>Active Issues</SelectLabel>
                                                 {availableIssues.length > 0 ? (
                                                     availableIssues.map((issue) => (
-                                                        <SelectItem key={issue.id} value={issue.id}>
+                                                        <SelectItem key={issue.id} value={issue.id.toString()}>
                                                             #{issue.atm_id} - {issue.category.replace(/_/g, ' ').toUpperCase()}
                                                         </SelectItem>
                                                     ))
                                                 ) : (
-                                                    <SelectItem disabled>No available issues</SelectItem>
+                                                    <SelectItem disabled value="no-issues">
+                                                        No available issues
+                                                    </SelectItem>
                                                 )}
                                             </SelectGroup>
                                         </SelectContent>
@@ -231,7 +257,7 @@ export default function LogFormDialog({
                                         </Label>
                                         <Input
                                             id="issue_type"
-                                            value={capitalizeWord(selectedIssue?.category.replace(/_/g, ' '))}
+                                            value={capitalizeWord(selectedIssue?.category?.replace(/_/g, ' ')) || ''}
                                             className="w-full"
                                             disabled
                                             aria-label="Issue type"
@@ -252,20 +278,18 @@ export default function LogFormDialog({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="action_taken" className="text-sm font-medium">
+                                    <Label htmlFor="issue_description" className="text-sm font-medium">
                                         Description
                                     </Label>
                                     <Textarea
-                                        id="action_taken"
-                                        placeholder="Deatils about the issue"
-                                        value={selectedIssue?.description}
-                                        onChange={(e) => setData('action_taken', e.target.value)}
-                                        className={`min-h-24 w-full ${errors.action_taken ? 'border-red-500' : ''}`}
-                                        aria-describedby="action-taken-description"
+                                        id="issue_description"
+                                        placeholder="Details about the issue"
+                                        value={selectedIssue?.description || ''}
+                                        className="min-h-24 w-full"
+                                        aria-describedby="issue-description-help"
                                         disabled
                                     />
-                                    {errors.action_taken && <p className="mt-1 text-xs font-medium text-red-500">{errors.action_taken}</p>}
-                                    <p id="action-taken-description" className="text-xs text-gray-500">
+                                    <p id="issue-description-help" className="text-xs text-gray-500">
                                         Detail the issue.
                                     </p>
                                 </div>
@@ -303,12 +327,13 @@ export default function LogFormDialog({
                             </p>
                         </div>
                         <div className="w-full space-y-2">
-                            <Label htmlFor="status" className="text-sm font-medium">
+                            <Label htmlFor="priority" className="text-sm font-medium">
                                 Priority level
                             </Label>
-                            <Select value={data.priority} onValueChange={(value) => handleSelectChange('status', value)} name="status">
+                            {/* Fix 7: Corrected priority select handler */}
+                            <Select value={data.priority} onValueChange={handlePriorityChange} name="priority">
                                 <SelectTrigger id="priority" className="w-full">
-                                    <SelectValue placeholder="Select status" />
+                                    <SelectValue placeholder="Select priority" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
@@ -339,7 +364,11 @@ export default function LogFormDialog({
                                 <Label htmlFor="user_id" className="text-sm font-medium">
                                     Assigned To
                                 </Label>
-                                <Select value={data.user_id} onValueChange={(value) => handleSelectChange('user_id', value)} name="user_id">
+                                <Select
+                                    value={data.user_id.toString()}
+                                    onValueChange={(value) => handleSelectChange('user_id', value)}
+                                    name="user_id"
+                                >
                                     <SelectTrigger id="user_id" className={`w-full ${errors.user_id ? 'border-red-500' : ''}`}>
                                         <SelectValue placeholder="Select a user">{selectedUser ? selectedUser.name : 'Select a user'}</SelectValue>
                                     </SelectTrigger>
@@ -347,7 +376,7 @@ export default function LogFormDialog({
                                         <SelectGroup>
                                             <SelectLabel>Active Users</SelectLabel>
                                             {availableUsers.map((user) => (
-                                                <SelectItem key={user.id} value={user.id}>
+                                                <SelectItem key={user.id} value={user.id.toString()}>
                                                     {user.name}
                                                 </SelectItem>
                                             ))}

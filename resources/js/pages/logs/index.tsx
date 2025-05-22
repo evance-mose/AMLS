@@ -21,17 +21,16 @@ import {
     Shield,
     XCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import LogFormDialog from './LogForm';
 
 export default function Index({ data, issues, users }) {
     const { auth } = usePage<SharedData>().props;
-    const [logs, setLogs] = useState(data);
+    const [logs, setLogs] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [selectedLog, setSelectedLog] = useState(null);
-    const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const breadcrumbs = [
@@ -45,57 +44,84 @@ export default function Index({ data, issues, users }) {
         },
     ];
 
+    // Initialize logs only once when data changes
     useEffect(() => {
-        setLogs(data);
+        if (data && Array.isArray(data)) {
+            setLogs(data);
+        }
     }, [data]);
 
-    const capitalizeEachWord = (str) => {
-        return str
-            .split(' ')
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
+    // Memoize filtered logs to prevent unnecessary recalculations
+    const filteredLogs = useMemo(() => {
+        return logs.filter((log) => {
+            const matchesSearch =
+                log.issue?.type?.toLowerCase().includes(searchTerm.toLowerCase()) || log.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const filteredLogs = logs.filter((log) => {
-        const matchesSearch =
-            log.issue?.type?.toLowerCase().includes(searchTerm.toLowerCase()) || log.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || log.status === statusFilter;
+            const matchesPriority = priorityFilter === 'all' || log.priority === priorityFilter;
 
-        const matchesStatus = statusFilter === 'all' || log.status === statusFilter;
-        const matchesPriority = priorityFilter === 'all' || log.priority === priorityFilter;
+            return matchesSearch && matchesStatus && matchesPriority;
+        });
+    }, [logs, searchTerm, statusFilter, priorityFilter]);
 
-        return matchesSearch && matchesStatus && matchesPriority;
-    });
-
-    const handleSearchChange = (e) => {
+    // Use useCallback to prevent function recreation on every render
+    const handleSearchChange = useCallback((e) => {
         setSearchTerm(e.target.value);
-    };
+    }, []);
 
-    const handleSaveLog = (logData) => {
-        if (selectedLog) {
-            setLogs((prevLogs) => prevLogs.map((log) => (log.id === selectedLog.id ? { ...log, ...logData } : log)));
-        } else {
-            setLogs((prevLogs) => [...prevLogs, { id: logs.length + 1, ...logData }]);
-        }
-        setSelectedLog(null);
-        setIsFormOpen(false);
-    };
+    const handleStatusFilterChange = useCallback((e) => {
+        setStatusFilter(e.target.value);
+    }, []);
 
-    const handleDeleteLog = (logId) => {
+    const handlePriorityFilterChange = useCallback((e) => {
+        setPriorityFilter(e.target.value);
+    }, []);
+
+    const handleSaveLog = useCallback(
+        (logData) => {
+            setLogs((prevLogs) => {
+                if (selectedLog) {
+                    // Update existing log
+                    return prevLogs.map((log) => (log.id === selectedLog.id ? { ...log, ...logData } : log));
+                } else {
+                    // Add new log with a proper ID
+                    const newId = Math.max(...prevLogs.map((log) => log.id || 0), 0) + 1;
+                    return [...prevLogs, { id: newId, ...logData }];
+                }
+            });
+
+            // Close dialog and reset state
+            setSelectedLog(null);
+            setIsDialogOpen(false);
+        },
+        [selectedLog],
+    );
+
+    const handleDeleteLog = useCallback((logId) => {
         if (confirm('Are you sure you want to delete this log?')) {
             setLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId));
             router.delete(route('logs.destroy', logId), {
                 preserveScroll: true,
             });
         }
-    };
+    }, []);
 
-    const handleEditLog = (log) => {
+    const handleEditLog = useCallback((log) => {
         setSelectedLog(log);
         setIsDialogOpen(true);
-        setIsFormOpen(true);
-    };
+    }, []);
 
-    const getStatusBadge = (status) => {
+    const handleCreateNew = useCallback(() => {
+        setSelectedLog(null);
+        setIsDialogOpen(true);
+    }, []);
+
+    const handleCloseDialog = useCallback(() => {
+        setIsDialogOpen(false);
+        setSelectedLog(null);
+    }, []);
+
+    const getStatusBadge = useCallback((status) => {
         const statusConfig = {
             resolved: {
                 icon: <CheckCircle size={16} className="text-green-600" />,
@@ -127,9 +153,9 @@ export default function Index({ data, issues, users }) {
                 <span>{config.text}</span>
             </div>
         );
-    };
+    }, []);
 
-    const getPriorityBadge = (priority) => {
+    const getPriorityBadge = useCallback((priority) => {
         const priorityConfig = {
             high: {
                 icon: <Flag size={16} className="text-red-600" />,
@@ -156,9 +182,9 @@ export default function Index({ data, issues, users }) {
                 <span>{config.text}</span>
             </div>
         );
-    };
+    }, []);
 
-    const getIssueTypeIcon = (type) => {
+    const getIssueTypeIcon = useCallback((type) => {
         const typeIcons = {
             hardware: <AlertCircle size={16} className="text-purple-600" />,
             software: <AlertCircle size={16} className="text-blue-600" />,
@@ -168,9 +194,9 @@ export default function Index({ data, issues, users }) {
         };
 
         return typeIcons[type] || typeIcons.other;
-    };
+    }, []);
 
-    const getCategoryIcon = (category) => {
+    const getCategoryIcon = useCallback((category) => {
         switch (category) {
             case 'hardware':
                 return <HardDrive className="h-5 w-5" />;
@@ -183,7 +209,8 @@ export default function Index({ data, issues, users }) {
             default:
                 return <HelpCircle className="h-5 w-5" />;
         }
-    };
+    }, []);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Log Management" />
@@ -206,7 +233,7 @@ export default function Index({ data, issues, users }) {
                             <select
                                 className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
                                 value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
+                                onChange={handleStatusFilterChange}
                             >
                                 <option value="all">All Status</option>
                                 <option value="pending">Pending</option>
@@ -221,7 +248,7 @@ export default function Index({ data, issues, users }) {
                             <select
                                 className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
                                 value={priorityFilter}
-                                onChange={(e) => setPriorityFilter(e.target.value)}
+                                onChange={handlePriorityFilterChange}
                             >
                                 <option value="all">All Priority</option>
                                 <option value="high">High</option>
@@ -232,11 +259,7 @@ export default function Index({ data, issues, users }) {
 
                         {auth.user.role === 'admin' && (
                             <Button
-                                onClick={() => {
-                                    setSelectedLog(null);
-                                    setIsFormOpen(true);
-                                    setIsDialogOpen(true);
-                                }}
+                                onClick={handleCreateNew}
                                 className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
                             >
                                 <Plus size={16} />
@@ -271,9 +294,9 @@ export default function Index({ data, issues, users }) {
                                         <TableRow
                                             key={log.id}
                                             onClick={() => handleEditLog(log)}
-                                            className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                                            className="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50"
                                         >
-                                            <TableCell className="font-medium">{`#${log.issue.id}`}</TableCell>
+                                            <TableCell className="font-medium">{`#${log.issue?.id || log.id}`}</TableCell>
                                             <TableCell className="font-medium text-gray-800">
                                                 {log.issue?.atm_id || ''}
                                                 <div className="text-xs text-gray-500">
@@ -282,21 +305,21 @@ export default function Index({ data, issues, users }) {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="uppercase">{log.issue.category.replace(/_/g, ' ')}</span>
+                                                    <span className="uppercase">{log.issue?.category?.replace(/_/g, ' ') || 'N/A'}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-gray-600">
-                                                {log.action_taken}
+                                                {log.action_taken || 'No action specified'}
                                                 <div className="text-xs text-gray-500">
                                                     {log.notes?.substring(0, 40) || 'No additional notes'}
                                                     {log.notes?.length > 40 ? '...' : ''}
                                                 </div>
                                             </TableCell>
                                             <TableCell>{getPriorityBadge(log.priority || 'medium')}</TableCell>
-                                            <TableCell>{getStatusBadge(log.status)}</TableCell>
+                                            <TableCell>{getStatusBadge(log.status || 'pending')}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-gray-700">{log.user?.name}</span>
+                                                    <span className="text-gray-700">{log.user?.name || 'Unassigned'}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>
@@ -331,7 +354,7 @@ export default function Index({ data, issues, users }) {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="h-32 text-center">
+                                        <TableCell colSpan={8} className="h-32 text-center">
                                             <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
                                                 <AlertCircle size={24} />
                                                 <p>No logs found matching your search criteria</p>
@@ -364,17 +387,14 @@ export default function Index({ data, issues, users }) {
                 </Card>
             </div>
 
-            {isFormOpen && (
+            {isDialogOpen && (
                 <LogFormDialog
                     log={selectedLog}
                     isOpen={isDialogOpen}
                     issues={issues}
                     users={users}
                     onSave={handleSaveLog}
-                    onClose={() => {
-                        setIsFormOpen(false);
-                        setIsDialogOpen(false);
-                    }}
+                    onClose={handleCloseDialog}
                 />
             )}
         </AppLayout>
