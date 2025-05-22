@@ -294,14 +294,14 @@ export default function Index({ issues }) {
                     <CardContent>
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="uppercase">
                                     <TableHead className="font-medium">ID</TableHead>
                                     <TableHead className="font-medium">ATM ID</TableHead>
                                     <TableHead className="font-medium">Location</TableHead>
                                     <TableHead className="font-medium">Category</TableHead>
                                     <TableHead className="font-medium">Priority</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
-                                    <TableHead className="w-24 text-right font-medium">Actions</TableHead>
+                                    <TableHead className="w-24 text-right font-medium"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

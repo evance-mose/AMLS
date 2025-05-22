@@ -254,14 +254,15 @@ export default function Index({ data, issues, users }) {
                     <CardContent>
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="uppercase">
+                                    <TableHead className="font-medium">Issue ID</TableHead>
                                     <TableHead className="font-medium">ATM ID</TableHead>
                                     <TableHead className="font-medium">Category</TableHead>
                                     <TableHead className="font-medium">Action</TableHead>
                                     <TableHead className="font-medium">Priority</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
                                     <TableHead className="font-medium">Assigned To</TableHead>
-                                    <TableHead className="w-24 text-right font-medium">Actions</TableHead>
+                                    <TableHead className="w-24 text-right font-medium"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -272,6 +273,7 @@ export default function Index({ data, issues, users }) {
                                             onClick={() => handleEditLog(log)}
                                             className="border-b border-gray-100 transition-colors hover:bg-gray-50"
                                         >
+                                            <TableCell className="font-medium">{`#${log.issue.id}`}</TableCell>
                                             <TableCell className="font-medium text-gray-800">
                                                 {log.issue?.atm_id || ''}
                                                 <div className="text-xs text-gray-500">

@@ -24,7 +24,7 @@ const mainNavItems: NavItem[] = [
         icon: Kanban,
     },
     {
-        title: 'Audit logs',
+        title: 'Logs',
         href: '/logs',
         icon: FileText,
     },

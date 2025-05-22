@@ -186,13 +186,13 @@ export default function Index({ data }) {
                     <CardContent>
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="uppercase">
                                     <TableHead className="font-medium">ID</TableHead>
                                     <TableHead className="font-medium">Name</TableHead>
                                     <TableHead className="font-medium">Email</TableHead>
                                     <TableHead className="font-medium">Role</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
-                                    <TableHead className="w-24 text-right font-medium">Actions</TableHead>
+                                    <TableHead className="w-24 text-right font-medium"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
