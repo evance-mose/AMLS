@@ -7,12 +7,12 @@ use App\Models\User;
 use App\Models\Issue;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Notifications\IssueAssigned;
+use Illuminate\Support\Facades\Notification;
 
 class LogController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+ 
     public function index()
     {
         return Inertia::render('logs/index', [
@@ -22,17 +22,12 @@ class LogController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validate = $request->validate([
@@ -43,7 +38,12 @@ class LogController extends Controller
             'priority' => 'required|in:low,medium,high',
         ]);
 
-        Log::create($validate);
+        $log = Log::create($validate);
+
+        if ($log->user_id) {
+            $assignedUser = User::find($log->user_id);
+            Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
+        }
 
         return redirect()->back()->with('success', 'Log created successfully.');
     }
@@ -69,8 +69,7 @@ class LogController extends Controller
      */
     public function update(Request $request, Log $log)
     {
-       
-         $validate = $request->validate([
+        $validate = $request->validate([
             'user_id' => 'nullable|exists:users,id',
             "issue_id" =>'nullable|exists:issues,id',
             'action_taken' => 'required|string|max:255',
@@ -78,7 +77,14 @@ class LogController extends Controller
             'priority' => 'required|in:low,medium,high',
         ]);
 
+        $oldUserId = $log->user_id;
         $log->update($validate);
+
+        // Send notification if user is assigned or changed
+        if ($log->user_id && ($oldUserId !== $log->user_id)) {
+            $assignedUser = User::find($log->user_id);
+            Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
+        }
 
         return redirect()->back()->with('success', 'Log updated successfully.');
     }
