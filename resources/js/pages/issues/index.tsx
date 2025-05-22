@@ -136,30 +136,6 @@ export default function Index({ issues }) {
         );
     };
 
-    const getTypeBadge = (type) => {
-        const typeConfig = {
-            hardware: {
-                classes: 'bg-purple-50 text-purple-700 border-purple-100',
-            },
-            software: {
-                classes: 'bg-blue-50 text-blue-700 border-blue-100',
-            },
-            network: {
-                classes: 'bg-teal-50 text-teal-700 border-teal-100',
-            },
-            security: {
-                classes: 'bg-red-50 text-red-700 border-red-100',
-            },
-            other: {
-                classes: 'bg-gray-50 text-gray-700 border-gray-100',
-            },
-        };
-
-        const config = typeConfig[type] || typeConfig.other;
-
-        return <div className={`rounded-full border px-2.5 py-1 text-xs font-medium ${config.classes}`}>{capitalizeEachWord(type)}</div>;
-    };
-
     const getCategoryIcon = (category) => {
         switch (category) {
             case 'hardware':
@@ -171,21 +147,8 @@ export default function Index({ issues }) {
             case 'security':
                 return <Shield className="h-5 w-5" />;
             default:
-                return <HelpCircle className="h-5 w-5" />;
+                return <HelpCircle className="h-5 w-5 text-red-500" />;
         }
-    };
-
-    const getTypeIcon = (type) => {
-        // You can customize this with appropriate icons for each type
-        const typeIcons = {
-            hardware: <AlertCircle size={16} className="text-purple-600" />,
-            software: <AlertCircle size={16} className="text-blue-600" />,
-            network: <AlertCircle size={16} className="text-teal-600" />,
-            security: <AlertCircle size={16} className="text-red-600" />,
-            other: <AlertCircle size={16} className="text-gray-600" />,
-        };
-
-        return typeIcons[type] || typeIcons.other;
     };
 
     return (
@@ -198,7 +161,7 @@ export default function Index({ issues }) {
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
                             <Input
                                 type="search"
-                                placeholder="Search by title, ATM ID or user..."
+                                placeholder="Search by ATM ID or user..."
                                 className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
@@ -215,28 +178,10 @@ export default function Index({ issues }) {
                                 >
                                     <option value="all">All Status</option>
                                     <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
+                                    <option value="acknowledged">Acknowledged</option>
                                     <option value="resolved">Resolved</option>
-                                    <option value="closed">Closed</option>
                                 </select>
                             </div>
-
-                            <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 sm:flex-initial">
-                                <Filter size={16} className="shrink-0 text-gray-500" />
-                                <select
-                                    className="w-full bg-transparent text-sm text-gray-700 focus:outline-none"
-                                    value={typeFilter}
-                                    onChange={(e) => setTypeFilter(e.target.value)}
-                                >
-                                    <option value="all">All Types</option>
-                                    <option value="hardware">Hardware</option>
-                                    <option value="software">Software</option>
-                                    <option value="network">Network</option>
-                                    <option value="security">Security</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-
                             <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 sm:flex-initial">
                                 <Flag size={16} className="shrink-0 text-gray-500" />
                                 <select

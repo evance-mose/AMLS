@@ -29,7 +29,7 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
             setData({
                 location: issue.location || '',
                 atm_id: issue.atm_id || '',
-                category: issue.category || 'hardware',
+                category: issue.category || '',
                 description: issue.description || '',
                 status: issue.status || 'pending',
                 user_id: issue.user_id || 'unassigned',
@@ -125,12 +125,12 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                             </div>
                         </div>
                         <div className="w-full space-y-2">
-                            <Label htmlFor="type" className="text-sm font-medium">
+                            <Label htmlFor="category" className="text-sm font-medium">
                                 Category
                             </Label>
-                            <Select value={data.category} onValueChange={(value) => handleSelectChange('type', value)} name="type">
-                                <SelectTrigger id="type" className="w-full">
-                                    <SelectValue placeholder="Select type" />
+                            <Select value={data.category} onValueChange={(value) => handleSelectChange('category', value)} name="category">
+                                <SelectTrigger id="category" className="w-full">
+                                    <SelectValue placeholder="Select category" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
@@ -188,12 +188,12 @@ export default function IssueFormDialog({ issue, isOpen, onSave, onClose }) {
                             {errors.status && <p className="mt-1 text-xs font-medium text-red-500">{errors.status}</p>}
                         </div>
                         <div className="w-full space-y-2">
-                            <Label htmlFor="status" className="text-sm font-medium">
+                            <Label htmlFor="priority" className="text-sm font-medium">
                                 Priority level
                             </Label>
-                            <Select value={data.priority} onValueChange={(value) => handleSelectChange('status', value)} name="status">
+                            <Select value={data.priority} onValueChange={(value) => handleSelectChange('priority', value)} name="priority">
                                 <SelectTrigger id="priority" className="w-full">
-                                    <SelectValue placeholder="Select status" />
+                                    <SelectValue placeholder="Select priority" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
