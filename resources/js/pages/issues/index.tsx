@@ -295,6 +295,7 @@ export default function Index({ issues }) {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="font-medium">ID</TableHead>
                                     <TableHead className="font-medium">ATM ID</TableHead>
                                     <TableHead className="font-medium">Location</TableHead>
                                     <TableHead className="font-medium">Category</TableHead>
@@ -307,6 +308,7 @@ export default function Index({ issues }) {
                                 {filteredIssues.length > 0 ? (
                                     filteredIssues.map((issue) => (
                                         <TableRow key={issue.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                                            <TableCell className="font-medium">{`#${issue.id}`}</TableCell>
                                             <TableCell className="font-medium text-gray-800">
                                                 {issue?.atm_id || ''}
                                                 <div className="text-xs text-gray-500">
