@@ -240,11 +240,10 @@ export default function Index({ issues }) {
                                                     {issue.created_at ? new Date(issue.created_at).toLocaleDateString() : 'No date'}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="font-medium">{issue.location}</TableCell>
+                                            <TableCell className="">{issue.location}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    {getCategoryIcon(issue.category)}
-                                                    <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
+                                                    <span className="uppercase">{issue.category.replace(/_/g, ' ')}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell>{getPriorityBadge(issue.priority || 'medium')}</TableCell>

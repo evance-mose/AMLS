@@ -42,7 +42,10 @@ const years = [2025, 2024, 2023];
 
 export default function MonthlyReport({ initialData }) {
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedMonth, setSelectedMonth] = useState('April');
+    const [selectedMonth, setSelectedMonth] = useState(() => {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return months[new Date().getMonth()];
+    });
     const [selectedYear, setSelectedYear] = useState(2025);
     const [reportData, setReportData] = useState(null);
     const [isExporting, setIsExporting] = useState(false);
@@ -325,7 +328,7 @@ export default function MonthlyReport({ initialData }) {
                 {/* Issues Table */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 uppercase">
                             <AlertCircle className="h-5 w-5 text-gray-500" />
                             Issues Summary
                         </CardTitle>
@@ -333,7 +336,7 @@ export default function MonthlyReport({ initialData }) {
                     <CardContent>
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="uppercase">
                                     <TableHead>ID</TableHead>
                                     <TableHead>Reported By</TableHead>
                                     <TableHead>Location</TableHead>
@@ -346,14 +349,13 @@ export default function MonthlyReport({ initialData }) {
                             <TableBody>
                                 {reportData.issues.map((issue) => (
                                     <TableRow key={issue.id}>
-                                        <TableCell className="font-mono text-sm">{issue.id}</TableCell>
-                                        <TableCell>{getUserFullName(issue.user_id)}</TableCell>
-                                        <TableCell className="font-medium">{issue.location}</TableCell>
+                                        <TableCell className="font-mono text-sm">{`#${issue.id}`}</TableCell>
+                                        <TableCell className="capitalize">{getUserFullName(issue.user_id)}</TableCell>
+                                        <TableCell className="capitalize">{issue.location}</TableCell>
                                         <TableCell>{issue.atm_id}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                {getCategoryIcon(issue.category)}
-                                                <span className="capitalize">{issue.category.replace(/_/g, ' ')}</span>
+                                                <span className="uppercase">{issue.category.replace(/_/g, ' ')}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>{getPriorityBadge(issue.priority || 'medium')}</TableCell>
@@ -376,7 +378,7 @@ export default function MonthlyReport({ initialData }) {
                     <CardContent>
                         <Table>
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className="uppercase">
                                     <TableHead>ID</TableHead>
                                     <TableHead>Technician</TableHead>
                                     <TableHead>Issue ID</TableHead>
@@ -388,10 +390,15 @@ export default function MonthlyReport({ initialData }) {
                             <TableBody>
                                 {reportData.maintenanceLogs.map((log) => (
                                     <TableRow key={log.id}>
-                                        <TableCell className="font-mono text-sm">{log.id}</TableCell>
+                                        <TableCell className="font-mono text-sm">{`#${log.id}`}</TableCell>
                                         <TableCell>{getUserFullName(log.user_id)}</TableCell>
                                         <TableCell>{log.issue_id || '-'}</TableCell>
-                                        <TableCell className="font-medium">{log.action_taken}</TableCell>
+                                        <TableCell className="">
+                                            {log.action_taken
+                                                ? log.action_taken.split(' ').slice(0, 40).join(' ') +
+                                                  (log.action_taken.split(' ').length > 40 ? '...' : '')
+                                                : 'No action done'}
+                                        </TableCell>
                                         <TableCell>{getPriorityBadge(log.priority || 'medium')}</TableCell>
                                         <TableCell>{getStatusBadge(log.status)}</TableCell>
                                     </TableRow>

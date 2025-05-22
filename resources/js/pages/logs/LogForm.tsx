@@ -21,7 +21,7 @@ export default function LogFormDialog({
     const [selectedIssue, setSelectedIssue] = useState(null);
     const [selectedUser, setSelectedUser] = useState(null);
 
-    const availableIssues = issues;
+    const availableIssues = issues.filter((issue) => issue.status !== 'acknowledged');
     const availableUsers = users;
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
@@ -209,11 +209,15 @@ export default function LogFormDialog({
                                         <SelectContent>
                                             <SelectGroup>
                                                 <SelectLabel>Active Issues</SelectLabel>
-                                                {availableIssues.map((issue) => (
-                                                    <SelectItem key={issue.id} value={issue.id}>
-                                                        #{issue.atm_id} - {issue.title}
-                                                    </SelectItem>
-                                                ))}
+                                                {availableIssues.length > 0 ? (
+                                                    availableIssues.map((issue) => (
+                                                        <SelectItem key={issue.id} value={issue.id}>
+                                                            #{issue.atm_id} - {issue.category.replace(/_/g, ' ').toUpperCase()}
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <SelectItem disabled>No available issues</SelectItem>
+                                                )}
                                             </SelectGroup>
                                         </SelectContent>
                                     </Select>

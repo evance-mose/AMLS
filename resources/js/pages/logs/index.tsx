@@ -282,8 +282,7 @@ export default function Index({ data, issues, users }) {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center gap-2">
-                                                    {getCategoryIcon(log.issue.type)}
-                                                    <span className="capitalize">{log.issue.category.replace(/_/g, ' ')}</span>
+                                                    <span className="uppercase">{log.issue.category.replace(/_/g, ' ')}</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-gray-600">
