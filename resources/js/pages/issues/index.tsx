@@ -4,22 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import {
-    AlertCircle,
-    CheckCircle,
-    Clock,
-    Cpu,
-    Filter,
-    Flag,
-    Globe,
-    HardDrive,
-    HelpCircle,
-    Loader2,
-    Plus,
-    Search,
-    Shield,
-    XCircle,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Flag, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield } from 'lucide-react';
 import { useState } from 'react';
 import IssueFormDialog from './IssueForm';
 
@@ -100,19 +85,14 @@ export default function Index({ issues }) {
                 text: 'Resolved',
                 classes: 'bg-green-50 text-green-700 border-green-100',
             },
-            closed: {
-                icon: <XCircle size={16} className="text-gray-600" />,
-                text: 'Closed',
-                classes: 'bg-gray-50 text-gray-700 border-gray-100',
-            },
             pending: {
                 icon: <Clock size={16} className="text-amber-600" />,
                 text: 'Pending',
                 classes: 'bg-amber-50 text-amber-700 border-amber-100',
             },
-            in_progress: {
+            acknowledged: {
                 icon: <Loader2 size={16} className="text-blue-600" />,
-                text: 'In Progress',
+                text: 'Acknowledged',
                 classes: 'bg-blue-50 text-blue-700 border-blue-100',
             },
         };
