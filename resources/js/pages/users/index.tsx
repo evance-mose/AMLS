@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Filter, Plus, Search, Shield, User, Users, XCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Filter, Search, Shield, User, Users, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import UserFormDialog from './userForm';
 
@@ -17,16 +17,7 @@ export default function Index({ data }) {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const breadcrumbs = [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-        },
-        {
-            title: 'Users',
-            href: '/users',
-        },
-    ];
+    const breadcrumbs = [];
 
     const capitalizeEachWord = (str) => {
         return str
@@ -163,25 +154,12 @@ export default function Index({ data }) {
                                 </select>
                             </div>
                         </div>
-
-                        <Button
-                            onClick={() => {
-                                setSelectedUser(null);
-                                setIsFormOpen(true);
-                                setIsDialogOpen(true);
-                            }}
-                            className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
-                        >
-                            <Plus size={16} />
-                            <span>New User</span>
-                        </Button>
                     </div>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>All Users</CardTitle>
-                        <CardDescription>Manage all system users and their permissions</CardDescription>
+                        <CardTitle className="uppercase">All Users</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -219,15 +197,15 @@ export default function Index({ data }) {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
+                                                        className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-blue-50 hover:text-blue-600"
                                                         onClick={() => handleEditUser(user)}
                                                     >
-                                                        View
+                                                        Edit
                                                     </Button>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
+                                                        className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-red-50 hover:text-red-600"
                                                         onClick={() => handleDeleteUser(user.id)}
                                                     >
                                                         Delete

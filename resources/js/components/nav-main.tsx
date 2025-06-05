@@ -52,7 +52,7 @@ export function NavMain({ items = [], onItemClick }: { items: NavItem[]; onItemC
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Platform</SidebarGroupLabel>
+            <SidebarGroupLabel className="uppercase">Platform</SidebarGroupLabel>
             <SidebarMenu>
                 {filteredItems.map((item) => (
                     <SidebarMenuItem key={item.title}>

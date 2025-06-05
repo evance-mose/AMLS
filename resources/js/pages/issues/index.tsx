@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Flag, Globe, HardDrive, HelpCircle, Loader2, Plus, Search, Shield } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Flag, Globe, HardDrive, HelpCircle, Loader2, Search, Shield } from 'lucide-react';
 import { useState } from 'react';
 import IssueFormDialog from './IssueForm';
 
@@ -18,23 +18,7 @@ export default function Index({ issues }) {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const breadcrumbs = [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-        },
-        {
-            title: 'Issues',
-            href: '/issues',
-        },
-    ];
-
-    const capitalizeEachWord = (str) => {
-        return str
-            .split(' ')
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
+    const breadcrumbs = [];
 
     const filteredIssues = issuesList.filter((issue) => {
         const matchesSearch =
@@ -196,25 +180,12 @@ export default function Index({ issues }) {
                                 </select>
                             </div>
                         </div>
-
-                        <Button
-                            onClick={() => {
-                                setSelectedIssue(null);
-                                setIsFormOpen(true);
-                                setIsDialogOpen(true);
-                            }}
-                            className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
-                        >
-                            <Plus size={16} />
-                            <span>New Issue</span>
-                        </Button>
                     </div>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>All Issues</CardTitle>
-                        <CardDescription>All reported issues sorted by recency</CardDescription>
+                        <CardTitle className="uppercase">All Issues</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -253,15 +224,15 @@ export default function Index({ issues }) {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
+                                                        className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-blue-50 hover:text-blue-600"
                                                         onClick={() => handleEditIssue(issue)}
                                                     >
-                                                        View
+                                                        Edit
                                                     </Button>
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
+                                                        className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-red-50 hover:text-red-600"
                                                         onClick={() => handleDeleteIssue(issue.id)}
                                                     >
                                                         Delete

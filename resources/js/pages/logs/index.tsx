@@ -1,26 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import {
-    AlertCircle,
-    CheckCircle,
-    Clock,
-    Cpu,
-    Filter,
-    Flag,
-    Globe,
-    HardDrive,
-    HelpCircle,
-    Loader2,
-    Plus,
-    Search,
-    Shield,
-    XCircle,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Flag, Globe, HardDrive, HelpCircle, Loader2, Search, Shield, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import LogFormDialog from './LogForm';
 
@@ -33,16 +18,7 @@ export default function Index({ data, issues, users }) {
     const [selectedLog, setSelectedLog] = useState(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const breadcrumbs = [
-        {
-            title: 'Dashboard',
-            href: '/dashboard',
-        },
-        {
-            title: 'Maintance logs',
-            href: '/logs',
-        },
-    ];
+    const breadcrumbs = [];
 
     // Initialize logs only once when data changes
     useEffect(() => {
@@ -221,7 +197,7 @@ export default function Index({ data, issues, users }) {
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
                             <Input
                                 type="search"
-                                placeholder="Search by fault or user name..."
+                                placeholder="Search by atm id"
                                 className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
@@ -256,23 +232,12 @@ export default function Index({ data, issues, users }) {
                                 <option value="low">Low</option>
                             </select>
                         </div>
-
-                        {auth.user.role === 'admin' && (
-                            <Button
-                                onClick={handleCreateNew}
-                                className="flex w-full items-center justify-center gap-2 bg-black text-white hover:bg-gray-700 sm:w-auto"
-                            >
-                                <Plus size={16} />
-                                <span>Assign Log</span>
-                            </Button>
-                        )}
                     </div>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>All Logs</CardTitle>
-                        <CardDescription>Maintenance logs sorted by recency</CardDescription>
+                        <CardTitle className="uppercase">Maintance Logs</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -327,19 +292,19 @@ export default function Index({ data, issues, users }) {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="h-8 border-gray-200 px-2 hover:bg-blue-50 hover:text-blue-600"
+                                                        className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-blue-50 hover:text-blue-600"
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleEditLog(log);
                                                         }}
                                                     >
-                                                        View
+                                                        Edit
                                                     </Button>
                                                     {auth.user.role === 'admin' && (
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="h-8 border-gray-200 px-2 hover:bg-red-50 hover:text-red-600"
+                                                            className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-red-50 hover:text-red-600"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 handleDeleteLog(log.id);
