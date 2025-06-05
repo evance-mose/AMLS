@@ -39,7 +39,7 @@ export default function Index({ data, issues, users }) {
             href: '/dashboard',
         },
         {
-            title: 'Audit logs',
+            title: 'Maintance logs',
             href: '/logs',
         },
     ];
