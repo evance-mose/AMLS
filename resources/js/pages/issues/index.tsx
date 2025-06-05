@@ -62,6 +62,11 @@ export default function Index({ issues }) {
         setIsFormOpen(true);
     };
 
+    const handleAssignIssue = (issue) => {
+        // TODO: Implement assign functionality
+        console.log('Assigning issue:', issue);
+    };
+
     const getStatusBadge = (status) => {
         const statusConfig = {
             resolved: {
@@ -228,6 +233,14 @@ export default function Index({ issues }) {
                                                         onClick={() => handleEditIssue(issue)}
                                                     >
                                                         Edit
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-purple-50 hover:text-purple-600"
+                                                        onClick={() => handleAssignIssue(issue)}
+                                                    >
+                                                        Assign
                                                     </Button>
                                                     <Button
                                                         variant="outline"
