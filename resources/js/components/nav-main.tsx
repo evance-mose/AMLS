@@ -4,10 +4,11 @@ import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export function NavMain({ items = [] }: { items: NavItem[] }) {
+export function NavMain({ items = [], onItemClick }: { items: NavItem[]; onItemClick?: (item: NavItem) => void }) {
     const { auth } = usePage<SharedData>().props;
     const page = usePage();
     const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+    const [activeCreateItem, setActiveCreateItem] = useState<string | null>(null);
 
     // Keep dropdowns open for active items
     useEffect(() => {
@@ -44,6 +45,11 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
         }));
     };
 
+    const handleCreateClick = (item: NavItem) => {
+        setActiveCreateItem(item.title);
+        onItemClick?.(item);
+    };
+
     return (
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -75,19 +81,34 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             <div className="mt-1 ml-4 space-y-1">
                                 {item.subitems.map((subitem) => (
                                     <SidebarMenuItem key={subitem.title}>
-                                        <SidebarMenuButton asChild isActive={subitem.href === page.url} tooltip={{ children: subitem.title }}>
-                                            <Link
-                                                href={subitem.href}
-                                                prefetch
-                                                className="text-muted-foreground hover:text-foreground flex items-center px-3 py-1.5 text-sm"
-                                            >
-                                                <span>{subitem.title}</span>
-                                            </Link>
+                                        <SidebarMenuButton
+                                            asChild={!subitem.onClick}
+                                            isActive={Boolean(subitem.href === page.url || (subitem.onClick && activeCreateItem === subitem.title))}
+                                            tooltip={{ children: subitem.title }}
+                                            onClick={() => subitem.onClick && handleCreateClick(subitem)}
+                                        >
+                                            {subitem.onClick ? (
+                                                <button
+                                                    className={`text-muted-foreground hover:text-foreground flex w-full items-center py-1.5 text-left text-xs uppercase ${
+                                                        activeCreateItem === subitem.title ? 'text-foreground font-medium' : ''
+                                                    }`}
+                                                >
+                                                    <span>{subitem.title}</span>
+                                                </button>
+                                            ) : (
+                                                <Link
+                                                    href={subitem.href}
+                                                    prefetch
+                                                    className="text-muted-foreground hover:text-foreground flex w-full items-center py-1.5 text-xs uppercase"
+                                                >
+                                                    <span>{subitem.title}</span>
+                                                </Link>
+                                            )}
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 ))}
                             </div>
-                        )}{' '}
+                        )}
                     </SidebarMenuItem>
                 ))}
             </SidebarMenu>
