@@ -237,7 +237,7 @@ export default function Index({ data, issues, users }) {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="uppercase">Maintance Logs</CardTitle>
+                        <CardTitle className="uppercase">Maintenance Logs</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Table>

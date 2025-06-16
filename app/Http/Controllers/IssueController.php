@@ -18,6 +18,7 @@ class IssueController extends Controller
     {
         return Inertia::render('issues/index', [
             'issues' => Issue::with(['user'])->get(),
+            'users' => User::all()
         ]);
     }    
 

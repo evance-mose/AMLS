@@ -4,9 +4,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { User } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+interface Issue {
+    id: number;
+    status: string;
+    [key: string]: any;
+}
+
+type LogFormData = {
+    user_id: string;
+    issue_id: string;
+    action_taken: string;
+    priority: string;
+    status: string;
+    issue_title: string;
+    issue_type: string;
+    atm_id: string;
+    description: string;
+    user_name: string;
+};
+
+interface LogFormDialogProps {
+    log?: Partial<LogFormData> & { id?: number; issue?: Issue; user?: User };
+    issues?: Issue[];
+    users?: User[];
+    isOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    onSave?: (data: LogFormData) => void;
+    onClose?: () => void;
+}
 
 export default function LogFormDialog({
     log = null,
@@ -16,15 +46,15 @@ export default function LogFormDialog({
     onOpenChange = () => {},
     onSave = () => {},
     onClose = () => {},
-}) {
+}: LogFormDialogProps) {
     const isEditMode = !!log;
-    const [selectedIssue, setSelectedIssue] = useState(null);
-    const [selectedUser, setSelectedUser] = useState(null);
+    const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     const availableIssues = issues.filter((issue) => issue.status !== 'acknowledged');
     const availableUsers = users;
 
-    const { data, setData, post, put, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset } = useForm<LogFormData>({
         user_id: '',
         issue_id: '',
         action_taken: '',
@@ -37,7 +67,6 @@ export default function LogFormDialog({
         user_name: '',
     });
 
-    // Fix 1: Remove data from dependency array to prevent infinite loop
     useEffect(() => {
         if (log) {
             setData({
@@ -50,29 +79,28 @@ export default function LogFormDialog({
                 description: log.issue?.description || '',
                 user_name: log.user?.name || '',
                 priority: log.priority || '',
+                issue_title: log.issue_title || '',
             });
             if (log.issue_id) {
-                // Fix 2: Use issues instead of users to find the issue
-                const issue = issues.find((i) => i.id === log.issue_id);
-                setSelectedIssue(issue || null);
+                const issue = issues.find((i) => i.id === log.issue_id) || null;
+                setSelectedIssue(issue);
             }
             if (log.user_id) {
-                const user = users.find((u) => u.id === log.user_id);
-                setSelectedUser(user || null);
+                const user = users.find((u) => u.id === log.user_id) || null;
+                setSelectedUser(user);
             }
         }
-    }, [log, issues, users, setData]); // Removed data from dependencies
+    }, [log, issues, users, setData]);
 
-    // Fix 3: Separate effect for dialog close handling
     useEffect(() => {
         if (!isOpen) {
             reset();
             setSelectedIssue(null);
             setSelectedUser(null);
         }
-    }, [isOpen, reset]); // Removed data and onClose from dependencies
+    }, [isOpen, reset]);
 
-    const formatDate = (dateString) => {
+    const formatDate = (dateString: string | undefined) => {
         if (!dateString) return '';
         const date = new Date(dateString);
         return new Intl.DateTimeFormat('en-US', {
@@ -84,10 +112,8 @@ export default function LogFormDialog({
         }).format(date);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log('data', data);
-
         if (isEditMode) {
             put(route('logs.update', log.id), {
                 onSuccess: () => {
@@ -105,38 +131,34 @@ export default function LogFormDialog({
         }
     };
 
-    const handleOpenChange = (open) => {
+    const handleOpenChange = (open: boolean) => {
         onOpenChange(open);
         if (!open) onClose();
     };
 
-    const handleSelectChange = (name, value) => {
+    const handleSelectChange = (name: keyof LogFormData, value: string) => {
         setData(name, value);
-
         if (name === 'issue_id') {
-            const selected = availableIssues.find((i) => i.id === parseInt(value));
-            setSelectedIssue(selected || null);
-            // Fix 4: Update atm_id separately to avoid conflicts
+            const selected = availableIssues.find((i) => i.id === parseInt(value)) || null;
+            setSelectedIssue(selected);
             if (selected) {
                 setData('atm_id', selected.atm_id || '');
             }
         }
         if (name === 'user_id') {
-            const selected = users.find((u) => u.id == parseInt(value));
-            setSelectedUser(selected || null);
-            // Fix 5: Update user_name separately
+            const selected = users.find((u) => u.id == parseInt(value)) || null;
+            setSelectedUser(selected);
             if (selected) {
                 setData('user_name', selected.name || '');
             }
         }
     };
 
-    // Fix 6: Handle priority change separately
-    const handlePriorityChange = (value) => {
+    const handlePriorityChange = (value: string) => {
         setData('priority', value);
     };
 
-    function capitalizeWord(str) {
+    function capitalizeWord(str: string | undefined) {
         if (!str) return '';
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
@@ -145,9 +167,9 @@ export default function LogFormDialog({
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-md md:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle className="text-xl">{isEditMode ? 'Log Entry' : 'Create New Log Entry'}</DialogTitle>
+                    <DialogTitle className="text-xl">{isEditMode ? 'Log Entry' : 'Assign Issue'}</DialogTitle>
                     <DialogDescription>
-                        {isEditMode ? 'Update log details and status.' : 'Fill in the information to create a new log entry.'}
+                        {isEditMode ? 'Update log details and status.' : 'Fill in the information to assign an issue to a user.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -215,85 +237,7 @@ export default function LogFormDialog({
                                 </div>
                             </>
                         ) : (
-                            <>
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="issue_id" className="text-sm font-medium">
-                                        ATM ID
-                                    </Label>
-                                    <Select
-                                        value={data.issue_id.toString()}
-                                        onValueChange={(value) => handleSelectChange('issue_id', value)}
-                                        name="issue_id"
-                                    >
-                                        <SelectTrigger id="issue_id" className={`w-full ${errors.issue_id ? 'border-red-500' : ''}`}>
-                                            <SelectValue placeholder="Select an issue">
-                                                {selectedIssue ? `#${selectedIssue.atm_id}` : 'Select an issue'}
-                                            </SelectValue>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectLabel>Active Issues</SelectLabel>
-                                                {availableIssues.length > 0 ? (
-                                                    availableIssues.map((issue) => (
-                                                        <SelectItem key={issue.id} value={issue.id.toString()}>
-                                                            #{issue.atm_id} - {issue.category.replace(/_/g, ' ').toUpperCase()}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <SelectItem disabled value="no-issues">
-                                                        No available issues
-                                                    </SelectItem>
-                                                )}
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.issue_id && <p className="mt-1 text-xs font-medium text-red-500">{errors.issue_id}</p>}
-                                </div>
-
-                                <div className="flex w-full space-x-4">
-                                    <div className="flex-1 space-y-2">
-                                        <Label htmlFor="issue_type" className="text-sm font-medium">
-                                            Category
-                                        </Label>
-                                        <Input
-                                            id="issue_type"
-                                            value={capitalizeWord(selectedIssue?.category?.replace(/_/g, ' ')) || ''}
-                                            className="w-full"
-                                            disabled
-                                            aria-label="Issue type"
-                                        />
-                                    </div>
-                                    <div className="flex-1 space-y-2">
-                                        <Label htmlFor="issue_date" className="text-sm font-medium">
-                                            Reported
-                                        </Label>
-                                        <Input
-                                            id="issue_date"
-                                            value={formatDate(selectedIssue?.created_at)}
-                                            className="w-full"
-                                            disabled
-                                            aria-label="date"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="issue_description" className="text-sm font-medium">
-                                        Description
-                                    </Label>
-                                    <Textarea
-                                        id="issue_description"
-                                        placeholder="Details about the issue"
-                                        value={selectedIssue?.description || ''}
-                                        className="min-h-24 w-full"
-                                        aria-describedby="issue-description-help"
-                                        disabled
-                                    />
-                                    <p id="issue-description-help" className="text-xs text-gray-500">
-                                        Detail the issue.
-                                    </p>
-                                </div>
-                            </>
+                            <></>
                         )}
                     </div>
 
@@ -330,7 +274,6 @@ export default function LogFormDialog({
                             <Label htmlFor="priority" className="text-sm font-medium">
                                 Priority level
                             </Label>
-                            {/* Fix 7: Corrected priority select handler */}
                             <Select value={data.priority} onValueChange={handlePriorityChange} name="priority">
                                 <SelectTrigger id="priority" className="w-full">
                                     <SelectValue placeholder="Select priority" />
@@ -360,7 +303,7 @@ export default function LogFormDialog({
                                 />
                             </div>
                         ) : (
-                            <div className="flex-1 space-y-2">
+                            <div className="w-full flex-1 space-y-2">
                                 <Label htmlFor="user_id" className="text-sm font-medium">
                                     Assigned To
                                 </Label>
@@ -406,7 +349,7 @@ export default function LogFormDialog({
                             aria-label={isEditMode ? 'Update log entry' : 'Create log entry'}
                         >
                             <Save size={16} />
-                            {isEditMode ? 'Update Log' : 'Create Log'}
+                            {isEditMode ? 'Update Log' : 'Assign'}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -3,22 +3,45 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
+import LogFormDialog from '@/pages/logs/LogForm';
+import { User } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Flag, Globe, HardDrive, HelpCircle, Loader2, Search, Shield } from 'lucide-react';
 import { useState } from 'react';
 import IssueFormDialog from './IssueForm';
 
-export default function Index({ issues }) {
-    const [issuesList, setIssuesList] = useState(issues);
+interface Issue {
+    id: number;
+    title?: string;
+    atm_id?: string;
+    location: string;
+    category: string;
+    description: string;
+    status: string;
+    priority: string;
+    user_id?: string;
+    created_at?: string;
+    user?: User;
+}
+
+interface IndexProps {
+    issues: Issue[];
+    users: User[];
+}
+
+export default function Index({ issues, users }: IndexProps) {
+    const [issuesList, setIssuesList] = useState<Issue[]>(issues);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
-    const [selectedIssue, setSelectedIssue] = useState(null);
+    const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+    const [selectedIssueForAssign, setSelectedIssueForAssign] = useState<Issue | null>(null);
 
-    const breadcrumbs = [];
+    const breadcrumbs: { title: string; href: string }[] = [];
 
     const filteredIssues = issuesList.filter((issue) => {
         const matchesSearch =
@@ -33,21 +56,21 @@ export default function Index({ issues }) {
         return matchesSearch && matchesStatus && matchesType && matchesPriority;
     });
 
-    const handleSearchChange = (e) => {
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
 
-    const handleSaveIssue = (issueData) => {
+    const handleSaveIssue = (issueData: Partial<Issue>) => {
         if (selectedIssue) {
             setIssuesList((prevIssues) => prevIssues.map((issue) => (issue.id === selectedIssue.id ? { ...issue, ...issueData } : issue)));
         } else {
-            setIssuesList((prevIssues) => [...prevIssues, { id: issuesList.length + 1, ...issueData }]);
+            setIssuesList((prevIssues) => [...prevIssues, { id: issuesList.length + 1, ...issueData } as Issue]);
         }
         setSelectedIssue(null);
         setIsFormOpen(false);
     };
 
-    const handleDeleteIssue = (issueId) => {
+    const handleDeleteIssue = (issueId: number) => {
         if (confirm('Are you sure you want to delete this issue?')) {
             setIssuesList((prevIssues) => prevIssues.filter((issue) => issue.id !== issueId));
             router.delete(route('issues.destroy', issueId), {
@@ -56,18 +79,37 @@ export default function Index({ issues }) {
         }
     };
 
-    const handleEditIssue = (issue) => {
+    const handleEditIssue = (issue: Issue) => {
         setSelectedIssue(issue);
         setIsDialogOpen(true);
         setIsFormOpen(true);
     };
 
-    const handleAssignIssue = (issue) => {
-        // TODO: Implement assign functionality
-        console.log('Assigning issue:', issue);
+    const handleAssignIssue = (issue: Issue) => {
+        setSelectedIssueForAssign(issue);
+        setIsAssignDialogOpen(true);
     };
 
-    const getStatusBadge = (status) => {
+    const handleAssignSave = (logData: { user_id: string }) => {
+        if (selectedIssueForAssign) {
+            // Update the issue status to acknowledged
+            setIssuesList((prevIssues) =>
+                prevIssues.map((issue) =>
+                    issue.id === selectedIssueForAssign.id ? { ...issue, status: 'acknowledged', assigned_to: logData.user_id } : issue,
+                ),
+            );
+            setSelectedIssueForAssign(null);
+            setIsAssignDialogOpen(false);
+        }
+    };
+
+    const handleAssignClose = () => {
+        setSelectedIssueForAssign(null);
+        setIsAssignDialogOpen(false);
+    };
+
+    type StatusType = 'resolved' | 'pending' | 'acknowledged';
+    const getStatusBadge = (status: StatusType) => {
         const statusConfig = {
             resolved: {
                 icon: <CheckCircle size={16} className="text-green-600" />,
@@ -96,7 +138,8 @@ export default function Index({ issues }) {
         );
     };
 
-    const getPriorityBadge = (priority) => {
+    type PriorityType = 'high' | 'medium' | 'low';
+    const getPriorityBadge = (priority: PriorityType) => {
         const priorityConfig = {
             high: {
                 icon: <Flag size={16} className="text-red-600" />,
@@ -125,7 +168,8 @@ export default function Index({ issues }) {
         );
     };
 
-    const getCategoryIcon = (category) => {
+    type CategoryType = 'hardware' | 'software' | 'network' | 'security';
+    const getCategoryIcon = (category: CategoryType) => {
         switch (category) {
             case 'hardware':
                 return <HardDrive className="h-5 w-5" />;
@@ -222,8 +266,8 @@ export default function Index({ issues }) {
                                                     <span className="uppercase">{issue.category.replace(/_/g, ' ')}</span>
                                                 </div>
                                             </TableCell>
-                                            <TableCell>{getPriorityBadge(issue.priority || 'medium')}</TableCell>
-                                            <TableCell>{getStatusBadge(issue.status)}</TableCell>
+                                            <TableCell>{getPriorityBadge(issue.priority as PriorityType)}</TableCell>
+                                            <TableCell>{getStatusBadge(issue.status as StatusType)}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
@@ -298,6 +342,17 @@ export default function Index({ issues }) {
                         setIsFormOpen(false);
                         setIsDialogOpen(false);
                     }}
+                />
+            )}
+
+            {isAssignDialogOpen && selectedIssueForAssign && (
+                <LogFormDialog
+                    log={null}
+                    isOpen={isAssignDialogOpen}
+                    issues={[selectedIssueForAssign] as any}
+                    users={users as any}
+                    onSave={handleAssignSave as any}
+                    onClose={handleAssignClose}
                 />
             )}
         </AppLayout>
