@@ -36,6 +36,11 @@ interface LogFormDialogProps {
     onOpenChange?: (open: boolean) => void;
     onSave?: (data: LogFormData) => void;
     onClose?: () => void;
+    moreData?: {
+        atm_id?: string;
+        category?: string;
+        issue_id?: string;
+    };
 }
 
 export default function LogFormDialog({
@@ -46,6 +51,7 @@ export default function LogFormDialog({
     onOpenChange = () => {},
     onSave = () => {},
     onClose = () => {},
+    moreData = {},
 }: LogFormDialogProps) {
     const isEditMode = !!log;
     const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
@@ -56,13 +62,13 @@ export default function LogFormDialog({
 
     const { data, setData, post, put, processing, errors, reset } = useForm<LogFormData>({
         user_id: '',
-        issue_id: '',
+        issue_id: moreData?.issue_id || '',
         action_taken: '',
         priority: 'low',
         status: 'pending',
         issue_title: '',
         issue_type: '',
-        atm_id: '',
+        atm_id: moreData?.atm_id || '',
         description: '',
         user_name: '',
     });
@@ -196,7 +202,7 @@ export default function LogFormDialog({
                                         </Label>
                                         <Input
                                             id="assigned"
-                                            value={log?.issue.category.replace(/_/g, ' ') || 'Unassigned'}
+                                            value={log?.issue?.category?.replace(/_/g, ' ') || 'Unassigned'}
                                             className="w-full uppercase"
                                             disabled
                                             aria-label="Assigned user name"
@@ -237,7 +243,28 @@ export default function LogFormDialog({
                                 </div>
                             </>
                         ) : (
-                            <></>
+                            <>
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div className="w-full space-y-2">
+                                        <Label htmlFor="atm_id" className="text-sm font-medium">
+                                            ATM ID
+                                        </Label>
+                                        <Input id="atm_id" value={moreData?.atm_id || ''} className="w-full" disabled aria-label="ATM ID" />
+                                    </div>
+                                    <div className="w-full space-y-2">
+                                        <Label htmlFor="category" className="text-sm font-medium">
+                                            Category
+                                        </Label>
+                                        <Input
+                                            id="category"
+                                            value={moreData?.category?.replace(/_/g, ' ') || 'Unassigned'}
+                                            className="w-full uppercase"
+                                            disabled
+                                            aria-label="Category"
+                                        />
+                                    </div>
+                                </div>
+                            </>
                         )}
                     </div>
 

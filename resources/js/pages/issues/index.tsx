@@ -98,6 +98,19 @@ export default function Index({ issues, users }: IndexProps) {
                     issue.id === selectedIssueForAssign.id ? { ...issue, status: 'acknowledged', assigned_to: logData.user_id } : issue,
                 ),
             );
+
+            // Create log data with category and atm_id
+            const logDataWithDetails = {
+                ...logData,
+                category: selectedIssueForAssign.category,
+                atm_id: selectedIssueForAssign.atm_id,
+            };
+
+            // Send the log data to the server
+            router.post(route('logs.store'), logDataWithDetails, {
+                preserveScroll: true,
+            });
+
             setSelectedIssueForAssign(null);
             setIsAssignDialogOpen(false);
         }
@@ -353,6 +366,11 @@ export default function Index({ issues, users }: IndexProps) {
                     users={users as any}
                     onSave={handleAssignSave as any}
                     onClose={handleAssignClose}
+                    moreData={{
+                        atm_id: selectedIssueForAssign.atm_id,
+                        category: selectedIssueForAssign.category,
+                        issue_id: selectedIssueForAssign.id.toString(),
+                    }}
                 />
             )}
         </AppLayout>
