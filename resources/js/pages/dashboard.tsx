@@ -395,8 +395,8 @@ export default function MonthlyReport({ initialData }) {
                                         <TableCell>{log.issue_id || '-'}</TableCell>
                                         <TableCell className="">
                                             {log.action_taken
-                                                ? log.action_taken.split(' ').slice(0, 40).join(' ') +
-                                                  (log.action_taken.split(' ').length > 40 ? '...' : '')
+                                                ? log.action_taken.split(' ').slice(0, 20).join(' ') +
+                                                  (log.action_taken.split(' ').length > 20 ? '...' : '')
                                                 : 'No action done'}
                                         </TableCell>
                                         <TableCell>{getPriorityBadge(log.priority || 'medium')}</TableCell>

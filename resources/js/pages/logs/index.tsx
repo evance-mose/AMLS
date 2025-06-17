@@ -274,11 +274,11 @@ export default function Index({ data, issues, users }) {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-gray-600">
-                                                {log.action_taken || 'No action specified'}
-                                                <div className="text-xs text-gray-500">
-                                                    {log.notes?.substring(0, 40) || 'No additional notes'}
-                                                    {log.notes?.length > 40 ? '...' : ''}
-                                                </div>
+                                                {log.action_taken
+                                                    ? log.action_taken.length > 10
+                                                        ? `${log.action_taken.substring(0, 20)}...`
+                                                        : log.action_taken
+                                                    : 'No action specified'}
                                             </TableCell>
                                             <TableCell>{getPriorityBadge(log.priority || 'medium')}</TableCell>
                                             <TableCell>{getStatusBadge(log.status || 'pending')}</TableCell>
