@@ -40,17 +40,12 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             <Head title="Log in" />
 
             <div className="mx-auto w-full max-w-xl">
-                <div className="rounded-xl bg-white p-12 shadow-lg dark:bg-gray-800">
+                <div className="rounded-xl bg-white p-12 shadow-lg backdrop-blur-xs dark:bg-gray-800">
                     <div className="mb-8 text-center">
-                        <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                            <svg className="text-primary h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                />
-                            </svg>
+                        <div className="mb-4 flex justify-center space-x-4">
+                            <div className="bg-primary/10 flex h-36 w-36 items-center justify-center rounded-full">
+                                <img src="/images/atm.png" alt="ATM" className="h-24 w-24 object-contain" />
+                            </div>
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back to AMLS</h2>
                         <p className="mt-2 text-gray-600 dark:text-gray-400">Please sign in to your account</p>

@@ -8,18 +8,8 @@ interface AuthLayoutProps {
 
 export default function AuthSimpleLayout({ children, title, description }: PropsWithChildren<AuthLayoutProps>) {
     return (
-        <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 bg-gray-100 p-6 md:p-10">
-            <div className="w-full max-w-xl">
-                <div className="flex flex-col gap-8">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="space-y-2 text-center">
-                            <h1 className="text-xl font-medium">{title}</h1>
-                            <p className="text-muted-foreground text-center text-sm">{description}</p>
-                        </div>
-                    </div>
-                    {children}
-                </div>
-            </div>
+        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-gradient-to-br from-[#89CFF0] to-[#B0E0E6] p-6 md:p-10">
+            <div className="w-full max-w-xl">{children}</div>
         </div>
     );
 }
