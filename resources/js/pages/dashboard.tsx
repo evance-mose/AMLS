@@ -370,7 +370,7 @@ export default function MonthlyReport({ initialData }) {
                 {/* Maintenance Logs Table */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 uppercase">
                             <ClipboardList className="h-5 w-5 text-gray-500" />
                             Maintenance Log Summary
                         </CardTitle>
