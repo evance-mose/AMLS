@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import LogFormDialog from '@/pages/logs/LogForm';
 import { User } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { PageProps as InertiaPageProps } from '@inertiajs/core';
+import { Head, router, usePage } from '@inertiajs/react';
 import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Flag, Globe, HardDrive, HelpCircle, Loader2, Search, Shield } from 'lucide-react';
 import { useState } from 'react';
 import IssueFormDialog from './IssueForm';
@@ -29,7 +30,16 @@ interface IndexProps {
     users: User[];
 }
 
+interface PageProps extends InertiaPageProps {
+    auth: {
+        user: User;
+    };
+    [key: string]: any;
+}
+
 export default function Index({ issues, users }: IndexProps) {
+    const { auth } = usePage<PageProps>().props;
+    const isAdmin = auth.user.role === 'admin';
     const [issuesList, setIssuesList] = useState<Issue[]>(issues);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -291,14 +301,16 @@ export default function Index({ issues, users }: IndexProps) {
                                                     >
                                                         Edit
                                                     </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-purple-50 hover:text-purple-600"
-                                                        onClick={() => handleAssignIssue(issue)}
-                                                    >
-                                                        Assign
-                                                    </Button>
+                                                    {isAdmin && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-8 border-gray-200 px-2 text-xs uppercase hover:bg-purple-50 hover:text-purple-600"
+                                                            onClick={() => handleAssignIssue(issue)}
+                                                        >
+                                                            Assign
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
