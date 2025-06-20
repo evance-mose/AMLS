@@ -11,14 +11,20 @@ use App\Notifications\IssueAssigned;
 use App\Notifications\IssueResolved;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class LogController extends Controller
 {
 
     public function index()
     {
+        $user = Auth::user();
+        $logsQuery = Log::with(['user', 'issue']);
+        if ($user && $user->role === 'technician') {
+            $logsQuery->where('user_id', $user->id);
+        }
         return Inertia::render('logs/index', [
-            'data' => Log::with(['user', 'issue'])->get(),
+            'data' => $logsQuery->get(),
             'issues' => Issue::all(),
             'users' => User::all()
         ]);
