@@ -26,16 +26,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Reports',
-        href: '/reports',
-    },
-    {
-        title: 'Monthly Report',
-        href: '/reports/monthly',
-    },
-];
+const breadcrumbs: BreadcrumbItem[] = [];
 
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const years = [2025, 2024, 2023];
