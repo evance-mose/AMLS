@@ -309,7 +309,10 @@ export default function MonthlyReport({ initialData }) {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">
-                                {Math.round((reportData.issueStats.resolved / reportData.issueStats.total) * 100)}%
+                                {reportData.issueStats.total === 0
+                                    ? 0
+                                    : Math.round((reportData.issueStats.resolved / reportData.issueStats.total) * 100)}
+                                %
                             </div>
                             <p className="mt-1 text-xs text-gray-500">Issues successfully resolved</p>
                         </CardContent>
