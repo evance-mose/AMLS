@@ -78,12 +78,17 @@ class LogController extends Controller
                 if ($issue) {
                     $issue->update(['status' => 'resolved']);
                     
-                    // Send notification to issue reporter that issue has been resolved
+                    $notifiables = collect();
                     if ($issue->user_id) {
                         $issueReporter = User::find($issue->user_id);
                         if ($issueReporter) {
-                            Notification::send($issueReporter, new IssueResolved($issue, $log));
+                            $notifiables->push($issueReporter);
                         }
+                    }
+                    $admins = User::admins()->get();
+                    $notifiables = $notifiables->merge($admins)->unique('id');
+                    if ($notifiables->isNotEmpty()) {
+                        Notification::send($notifiables, new IssueResolved($issue, $log));
                     }
                 }
             }

@@ -57,4 +57,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Log::class);
     }
+
+    public function scopeAdmins($query)
+    {
+        return $query->where('role', 'admin');
+    }
 }
