@@ -16,8 +16,15 @@ class IssueController extends Controller
 
     public function index()
     {
+        $user = Auth::user();
+        $issuesQuery = Issue::with(['user'])->where('status', '!=', 'resolved');
+
+        if ($user->role === 'technician') {
+            $issuesQuery->where('user_id', $user->id);
+        }
+
         return Inertia::render('issues/index', [
-            'issues' => Issue::with(['user'])->where('status', '!=', 'resolved')->get(),
+            'issues' => $issuesQuery->get(),
             'users' => User::all()
         ]);
     }    
