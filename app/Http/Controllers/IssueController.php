@@ -17,7 +17,7 @@ class IssueController extends Controller
     public function index()
     {
         return Inertia::render('issues/index', [
-            'issues' => Issue::with(['user'])->get(),
+            'issues' => Issue::with(['user'])->where('status', '!=', 'resolved')->get(),
             'users' => User::all()
         ]);
     }    

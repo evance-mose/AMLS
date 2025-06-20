@@ -58,7 +58,7 @@ export default function LogFormDialog({
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     const availableIssues = issues.filter((issue) => issue.status !== 'acknowledged');
-    const availableUsers = users;
+    const availableUsers = users.filter((user) => user.role === 'technician');
 
     const { data, setData, post, put, processing, errors, reset } = useForm<LogFormData>({
         user_id: '',
