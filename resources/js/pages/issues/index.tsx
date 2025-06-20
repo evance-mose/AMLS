@@ -39,7 +39,7 @@ interface PageProps extends InertiaPageProps {
 
 export default function Index({ issues, users }: IndexProps) {
     const { auth } = usePage<PageProps>().props;
-    const isAdmin = auth.user.role === 'admin';
+    const isAdmin = auth.user.role === 'admin' || 'custodian';
     const [issuesList, setIssuesList] = useState<Issue[]>(issues);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
