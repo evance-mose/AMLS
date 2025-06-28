@@ -50,7 +50,10 @@ class LogController extends Controller
                 
                 Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
                
-                $issue->update(['status' => 'acknowledged']);
+                $issue->update([
+                    'status' => 'acknowledged',
+                    'assigned_to' => $log->user_id
+                ]);
             }
         });
     
@@ -77,6 +80,14 @@ class LogController extends Controller
             if ($log->user_id && ($oldUserId !== $log->user_id)) {
                 $assignedUser = User::find($log->user_id);
                 Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
+                
+                // Update the issue's assigned_to field when user changes
+                if ($log->issue_id) {
+                    $issue = Issue::find($log->issue_id);
+                    if ($issue) {
+                        $issue->update(['assigned_to' => $log->user_id]);
+                    }
+                }
             }
 
             if ($log->issue_id && $validate['status'] === 'resolved' && $oldStatus !== 'resolved') {

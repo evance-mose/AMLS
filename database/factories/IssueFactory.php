@@ -16,9 +16,9 @@ class IssueFactory extends Factory
             'user_id' => User::factory(),
             'location' => $this->faker->city(),
             'atm_id' => $this->faker->unique()->bothify('ATM####'),
-            'type' => $this->faker->randomElement(['hardware', 'software', 'network', 'security', 'other']),
+            'category' => $this->faker->randomElement(['dispenser_errors', 'card_reader_errors', 'receipt_printer_errors', 'epp_errors', 'pc_core_errors', 'journal_printer_errors', 'recycling_module_errors', 'other']),
             'description' => $this->faker->paragraph(),
-            'status' => $this->faker->randomElement(['pending', 'in_progress', 'resolved', 'closed']),
+            'status' => $this->faker->randomElement(['pending', 'acknowledged', 'resolved']),
             'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
         ];
     }

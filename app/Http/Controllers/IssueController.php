@@ -7,20 +7,20 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Exception;
+
 class IssueController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    //
+ 
 
     public function index()
     {
         $user = Auth::user();
-        $issuesQuery = Issue::with(['user'])->where('status', '!=', 'resolved');
+        $issuesQuery = Issue::with(['user', 'assignedUser'])->where('status', '!=', 'resolved');
 
         if ($user->role === 'technician') {
-            $issuesQuery->where('user_id', $user->id);
+            $issuesQuery->where('assigned_to', $user->id);
         }
 
         return Inertia::render('issues/index', [
@@ -29,17 +29,7 @@ class IssueController extends Controller
         ]);
     }    
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -49,7 +39,7 @@ class IssueController extends Controller
             'description' => 'nullable|string',
             'status' => 'required|in:pending,in_progress,resolved,closed',
             'priority' => 'required|in:low,medium,high',
-            
+            'assigned_to' => 'nullable|exists:users,id',
         ]);
     
         Issue::create([
@@ -60,32 +50,15 @@ class IssueController extends Controller
         return redirect()->back()->with('success', 'Issue created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Issue $issue)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Issue $issue)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
+  
     public function update(Request $request, Issue $issue)
     {
         $validated = $request->validate([
             'user_id' => 'nullable|exists:users,id',
+            'assigned_to' => 'nullable|exists:users,id',
             'location' => 'required|string|max:255',
             'atm_id' => 'required|string|max:255',
-            'category' => 'required|in:dispenser_errors,card_reader_errors,receipt_printer_errors,epp_erros,pc_core_errors,journal_printer_errors,recycling_module_errors,other',
+            'category' => 'required|in:dispenser_errors,card_reader_errors,receipt_printer_errors,epp_errors,pc_core_errors,journal_printer_errors,recycling_module_errors,other',
             'description' => 'nullable|string',
             'status' => 'required|in:pending,acknowledged,resolved,closed',
             'priority' => 'required|in:low,medium,high',
@@ -93,7 +66,7 @@ class IssueController extends Controller
 
         $issue->update($validated);
 
-        return redirect()->back()->with('success', 'Log updated successfully.');
+        return redirect()->back()->with('success', 'Issue updated successfully.');
     }
 
     /**
