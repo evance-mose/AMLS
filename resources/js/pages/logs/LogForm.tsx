@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 interface Issue {
     id: number;
     status: string;
+    assignedUser?: User;
     [key: string]: any;
 }
 

@@ -7,7 +7,7 @@ import LogFormDialog from '@/pages/logs/LogForm';
 import { User } from '@/types';
 import { PageProps as InertiaPageProps } from '@inertiajs/core';
 import { Head, router, usePage } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Clock, Cpu, Filter, Flag, Globe, HardDrive, HelpCircle, Loader2, Search, Shield } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Filter, Flag, Loader2, Search, User as UserIcon } from 'lucide-react';
 import { useState } from 'react';
 import IssueFormDialog from './IssueForm';
 
@@ -21,8 +21,10 @@ interface Issue {
     status: string;
     priority: string;
     user_id?: string;
+    assigned_to?: string;
     created_at?: string;
     user?: User;
+    assignedUser?: User;
 }
 
 interface IndexProps {
@@ -34,7 +36,7 @@ interface PageProps extends InertiaPageProps {
     auth: {
         user: User;
     };
-    [key: string]: any;
+    props: Record<string, unknown>;
 }
 
 export default function Index({ issues, users }: IndexProps) {
@@ -43,7 +45,6 @@ export default function Index({ issues, users }: IndexProps) {
     const [issuesList, setIssuesList] = useState<Issue[]>(issues);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [typeFilter, setTypeFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
     const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -57,13 +58,13 @@ export default function Index({ issues, users }: IndexProps) {
         const matchesSearch =
             issue.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             issue.atm_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            issue.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            issue.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            issue.assignedUser?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
-        const matchesType = typeFilter === 'all' || issue.category === typeFilter;
         const matchesPriority = priorityFilter === 'all' || issue.priority === priorityFilter;
 
-        return matchesSearch && matchesStatus && matchesType && matchesPriority;
+        return matchesSearch && matchesStatus && matchesPriority;
     });
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,19 +192,21 @@ export default function Index({ issues, users }: IndexProps) {
         );
     };
 
-    type CategoryType = 'hardware' | 'software' | 'network' | 'security';
-    const getCategoryIcon = (category: CategoryType) => {
-        switch (category) {
-            case 'hardware':
-                return <HardDrive className="h-5 w-5" />;
-            case 'software':
-                return <Cpu className="h-5 w-5" />;
-            case 'network':
-                return <Globe className="h-5 w-5" />;
-            case 'security':
-                return <Shield className="h-5 w-5" />;
-            default:
-                return <HelpCircle className="h-5 w-5 text-red-500" />;
+    const getAssignmentBadge = (issue) => {
+        if (issue.assigned_to) {
+            return (
+                <div className="flex items-center gap-1.5 rounded-full border border-green-100 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
+                    <UserIcon size={16} className="text-green-600" />
+                    <span className="text-black">{issue.assigned_user?.name}</span>
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex items-center gap-1.5 rounded-full border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700">
+                    <UserIcon size={16} className="text-gray-500" />
+                    <span>Unassigned</span>
+                </div>
+            );
         }
     };
 
@@ -217,7 +220,7 @@ export default function Index({ issues, users }: IndexProps) {
                             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
                             <Input
                                 type="search"
-                                placeholder="Search by ATM ID or user..."
+                                placeholder="Search by ATM ID, user, or assigned user..."
                                 className="h-10 w-full border-gray-200 pr-4 pl-10 focus:border-blue-500 focus:ring-blue-500"
                                 value={searchTerm}
                                 onChange={handleSearchChange}
@@ -269,6 +272,7 @@ export default function Index({ issues, users }: IndexProps) {
                                     <TableHead className="font-medium">Category</TableHead>
                                     <TableHead className="font-medium">Priority</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
+                                    <TableHead className="font-medium">Assigned To</TableHead>
                                     <TableHead className="w-24 text-right font-medium"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -291,6 +295,7 @@ export default function Index({ issues, users }: IndexProps) {
                                             </TableCell>
                                             <TableCell>{getPriorityBadge(issue.priority as PriorityType)}</TableCell>
                                             <TableCell>{getStatusBadge(issue.status as StatusType)}</TableCell>
+                                            <TableCell>{getAssignmentBadge(issue)}</TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Button
@@ -325,7 +330,7 @@ export default function Index({ issues, users }: IndexProps) {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-32 text-center">
+                                        <TableCell colSpan={8} className="h-32 text-center">
                                             <div className="flex flex-col items-center justify-center gap-2 text-gray-500">
                                                 <AlertCircle size={24} />
                                                 <p>No issues found matching your search criteria</p>
@@ -372,11 +377,11 @@ export default function Index({ issues, users }: IndexProps) {
 
             {isAssignDialogOpen && selectedIssueForAssign && (
                 <LogFormDialog
-                    log={null}
+                    log={undefined}
                     isOpen={isAssignDialogOpen}
-                    issues={[selectedIssueForAssign] as any}
-                    users={users as any}
-                    onSave={handleAssignSave as any}
+                    issues={[selectedIssueForAssign]}
+                    users={users}
+                    onSave={handleAssignSave}
                     onClose={handleAssignClose}
                     moreData={{
                         atm_id: selectedIssueForAssign.atm_id,
