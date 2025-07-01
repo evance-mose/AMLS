@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from '@inertiajs/react';
-import { Save, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { Eye, EyeOff, Save, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function UserFormDialog({ user = null, isOpen = false, onSave = () => {}, onClose = () => {} }) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
@@ -16,6 +16,9 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
         role: 'user',
         status: 'active',
     });
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -123,15 +126,26 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
                                     <Label htmlFor="password" className="text-sm font-medium">
                                         Password
                                     </Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        placeholder="Create a strong password"
-                                        value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
-                                        className={`w-full ${errors.password ? 'border-red-500' : ''}`}
-                                        required={!isEditMode}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="Create a strong password"
+                                            value={data.password}
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            className={`w-full pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                                            required={!isEditMode}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((prev) => !prev)}
+                                            className="focus:ring-ring/50 absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 focus:ring-2 focus:outline-none"
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            tabIndex={0}
+                                        >
+                                            {showPassword ? <EyeOff className="h-3 w-3 text-gray-500" /> : <Eye className="h-3 w-3 text-gray-500" />}
+                                        </button>
+                                    </div>
                                     {errors.password && <p className="mt-1 text-xs font-medium text-red-500">{errors.password}</p>}
                                 </div>
 
@@ -139,15 +153,30 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
                                     <Label htmlFor="password_confirmation" className="text-sm font-medium">
                                         Confirm Password
                                     </Label>
-                                    <Input
-                                        id="password_confirmation"
-                                        type="password"
-                                        placeholder="Confirm password"
-                                        value={data.password_confirmation}
-                                        onChange={(e) => setData('password_confirmation', e.target.value)}
-                                        className="w-full"
-                                        required={!isEditMode}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="password_confirmation"
+                                            type={showPasswordConfirmation ? 'text' : 'password'}
+                                            placeholder="Confirm password"
+                                            value={data.password_confirmation}
+                                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                                            className="w-full pr-10"
+                                            required={!isEditMode}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPasswordConfirmation((prev) => !prev)}
+                                            className="focus:ring-ring/50 absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 focus:ring-2 focus:outline-none"
+                                            aria-label={showPasswordConfirmation ? 'Hide password confirmation' : 'Show password confirmation'}
+                                            tabIndex={0}
+                                        >
+                                            {showPasswordConfirmation ? (
+                                                <EyeOff className="h-3 w-3 text-gray-500" />
+                                            ) : (
+                                                <Eye className="h-3 w-3 text-gray-500" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             </>
                         )}
@@ -197,23 +226,7 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
                         </div>
                     </div>
 
-                    {isEditMode && (
-                        <div className="space-y-2">
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="reset_password"
-                                    checked={data.reset_password}
-                                    onChange={(e) => setData('reset_password', e.target.checked)}
-                                    className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <Label htmlFor="reset_password" className="text-sm">
-                                    Reset user password
-                                </Label>
-                            </div>
-                            <p className="pl-6 text-xs text-gray-500">This will send a password reset email to the user.</p>
-                        </div>
-                    )}
+                    {isEditMode && <></>}
 
                     <DialogFooter className="sm:justify-between">
                         <Button type="button" variant="outline" onClick={onClose} className="flex items-center gap-1" disabled={processing}>
