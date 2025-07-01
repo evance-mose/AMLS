@@ -110,17 +110,7 @@ export default function Index({ issues, users }: IndexProps) {
                 ),
             );
 
-            // Create log data with category and atm_id
-            const logDataWithDetails = {
-                ...logData,
-                category: selectedIssueForAssign.category,
-                atm_id: selectedIssueForAssign.atm_id,
-            };
-
-            // Send the log data to the server
-            router.post(route('logs.store'), logDataWithDetails, {
-                preserveScroll: true,
-            });
+            // No need to send log creation request here; LogFormDialog already does it
 
             setSelectedIssueForAssign(null);
             setIsAssignDialogOpen(false);
@@ -197,7 +187,7 @@ export default function Index({ issues, users }: IndexProps) {
             return (
                 <div className="flex items-center gap-1.5 rounded-full border border-green-100 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
                     <UserIcon size={16} className="text-green-600" />
-                    <span className="text-black">{issue.assigned_user?.name}</span>
+                    <span className="text-black">assigned</span>
                 </div>
             );
         } else {
