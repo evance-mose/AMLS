@@ -103,10 +103,19 @@ export default function Index({ issues, users }: IndexProps) {
 
     const handleAssignSave = (logData: { user_id: string }) => {
         if (selectedIssueForAssign) {
-            // Update the issue status to acknowledged
+            // Find the assigned user object
+            const assignedUserObj = users.find((u) => u.id === Number(logData.user_id));
+            // Update the issue status to acknowledged and assignedUser
             setIssuesList((prevIssues) =>
                 prevIssues.map((issue) =>
-                    issue.id === selectedIssueForAssign.id ? { ...issue, status: 'acknowledged', assigned_to: logData.user_id } : issue,
+                    issue.id === selectedIssueForAssign.id
+                        ? {
+                              ...issue,
+                              status: 'acknowledged',
+                              assigned_to: logData.user_id,
+                              assignedUser: assignedUserObj,
+                          }
+                        : issue,
                 ),
             );
 
@@ -182,7 +191,7 @@ export default function Index({ issues, users }: IndexProps) {
         );
     };
 
-    const getAssignmentBadge = (issue) => {
+    const getAssignmentBadge = (issue: Issue) => {
         if (issue.assigned_to) {
             return (
                 <div className="flex items-center gap-1.5 rounded-full border border-green-100 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
@@ -194,7 +203,7 @@ export default function Index({ issues, users }: IndexProps) {
             return (
                 <div className="flex items-center gap-1.5 rounded-full border border-gray-100 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700">
                     <UserIcon size={16} className="text-gray-500" />
-                    <span>Unassigned</span>
+                    <span>unassigned</span>
                 </div>
             );
         }
@@ -262,7 +271,7 @@ export default function Index({ issues, users }: IndexProps) {
                                     <TableHead className="font-medium">Category</TableHead>
                                     <TableHead className="font-medium">Priority</TableHead>
                                     <TableHead className="font-medium">Status</TableHead>
-                                    <TableHead className="font-medium">Assigned To</TableHead>
+                                    <TableHead className="font-medium"></TableHead>
                                     <TableHead className="w-24 text-right font-medium"></TableHead>
                                 </TableRow>
                             </TableHeader>
