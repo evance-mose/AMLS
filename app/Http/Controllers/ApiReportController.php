@@ -9,7 +9,7 @@ use App\Models\User;
 
 use Illuminate\Http\Request;
 
-class ReportController extends Controller
+class ApiReportController extends Controller
 {
 
     public function monthly(Request $request)
@@ -60,11 +60,7 @@ class ReportController extends Controller
                 'resolved' => $resolvedIssues,
                 'pending' => $pendingIssues,
                 'avgResolutionTime' => $avgResolutionTime,
-            ],
-            'issues' => $issues,
-            'maintenanceLogs' => $logs,
-            'users' => $users,
-           
+            ]
         ];
 
 
@@ -137,10 +133,7 @@ class ReportController extends Controller
                 'resolved' => $resolvedIssues,
                 'pending' => $pendingIssues,
                 'avgResolutionTime' => $avgResolutionTime,
-            ],
-            'issues' => $latestIssues,
-            'maintenanceLogs' => $latestLogs,
-            'users' => $users,
+            ]
            
         ];
     
