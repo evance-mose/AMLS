@@ -25,6 +25,14 @@ class LoginController extends Controller
         $user = Auth::user();
         $token = $user->createToken('api-token', ['*'])->plainTextToken;
 
-        return response()->json(['token' => $token]);
+        return response()->json([
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'name' => $user->name,
+                'role' => $user->role,
+            ],
+        ]);
     }
 }
