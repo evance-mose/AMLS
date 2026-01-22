@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from '@inertiajs/react';
 import { Eye, EyeOff, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -15,6 +16,8 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
         password_confirmation: '',
         role: 'user',
         status: 'active',
+        expertise: [],
+        availability: 'available',
     });
 
     const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +32,8 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
                 password_confirmation: '',
                 role: user.role || 'user',
                 status: user.status || 'active',
+                expertise: user.expertise || [],
+                availability: user.availability || 'available',
             });
         } else if (isOpen) {
             // Reset form for new user
@@ -39,13 +44,15 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
                 password_confirmation: '',
                 role: 'user',
                 status: 'active',
+                expertise: [],
+                availability: 'available',
             });
         }
     }, [user, isOpen]);
 
     useEffect(() => {
         if (!isOpen) {
-            reset('name', 'email', 'password', 'password_confirmation', 'role', 'status');
+            reset('name', 'email', 'password', 'password_confirmation', 'role', 'status', 'expertise', 'availability');
         }
     }, [isOpen]);
 
@@ -217,7 +224,6 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
                                         <SelectLabel>Status</SelectLabel>
                                         <SelectItem value="active">Active</SelectItem>
                                         <SelectItem value="inactive">Inactive</SelectItem>
-                                        <SelectItem value="pending">Pending Verification</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
@@ -225,6 +231,74 @@ export default function UserFormDialog({ user = null, isOpen = false, onSave = (
                             <p className="text-xs text-gray-500">Inactive accounts cannot log in to the system.</p>
                         </div>
                     </div>
+
+                    {data.role === 'technician' && (
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">
+                                    Availability
+                                </Label>
+                                <Select value={data.availability} onValueChange={(value) => setData('availability', value)}>
+                                    <SelectTrigger className={`w-full ${errors.availability ? 'border-red-500' : ''}`}>
+                                        <SelectValue placeholder="Select availability" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectGroup>
+                                            <SelectLabel>Availability Status</SelectLabel>
+                                            <SelectItem value="available">Available</SelectItem>
+                                            <SelectItem value="busy">Busy</SelectItem>
+                                            <SelectItem value="unavailable">Unavailable</SelectItem>
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
+                                {errors.availability && <p className="mt-1 text-xs font-medium text-red-500">{errors.availability}</p>}
+                                <p className="text-xs text-gray-500">Current availability status of the technician.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">
+                                    Expertise Areas
+                                </Label>
+                                <div className="space-y-2 rounded-md border p-4">
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                        {[
+                                            { value: 'dispenser_errors', label: 'Dispenser Errors' },
+                                            { value: 'card_reader_errors', label: 'Card Reader Errors' },
+                                            { value: 'receipt_printer_errors', label: 'Receipt Printer Errors' },
+                                            { value: 'epp_errors', label: 'EPP Errors' },
+                                            { value: 'pc_core_errors', label: 'PC Core Errors' },
+                                            { value: 'journal_printer_errors', label: 'Journal Printer Errors' },
+                                            { value: 'recycling_module_errors', label: 'Recycling Module Errors' },
+                                            { value: 'other', label: 'Other' },
+                                        ].map((category) => (
+                                            <div key={category.value} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`expertise-${category.value}`}
+                                                    checked={data.expertise?.includes(category.value) || false}
+                                                    onCheckedChange={(checked) => {
+                                                        const currentExpertise = data.expertise || [];
+                                                        if (checked) {
+                                                            setData('expertise', [...currentExpertise, category.value]);
+                                                        } else {
+                                                            setData('expertise', currentExpertise.filter((e) => e !== category.value));
+                                                        }
+                                                    }}
+                                                />
+                                                <Label
+                                                    htmlFor={`expertise-${category.value}`}
+                                                    className="text-sm font-normal cursor-pointer"
+                                                >
+                                                    {category.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                {errors.expertise && <p className="mt-1 text-xs font-medium text-red-500">{errors.expertise}</p>}
+                                <p className="text-xs text-gray-500">Select the issue categories this technician is expert in. Used for automatic assignment.</p>
+                            </div>
+                        </div>
+                    )}
 
                     {isEditMode && <></>}
 

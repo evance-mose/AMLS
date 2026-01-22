@@ -5,9 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Issue;
 use App\Models\User;
+use App\Models\Log;
+use App\Services\TechnicianAssignmentService;
+use App\Notifications\IssueAssigned;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log as LogFacade;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Exception;
 
 class ApiIssueController extends Controller
@@ -35,8 +40,57 @@ class ApiIssueController extends Controller
             ...$validated,
             'user_id' => Auth()->id()
         ]);
+
+        // Automatic technician assignment if not manually assigned
+        if (empty($validated['assigned_to'])) {
+            DB::transaction(function () use ($issue, $validated) {
+                try {
+                    $assignmentService = new TechnicianAssignmentService();
+                    $assignedTechnician = $assignmentService->assignTechnician($issue);
+                    
+                    if ($assignedTechnician) {
+                        // Update issue with assigned technician
+                        $issue->update([
+                            'assigned_to' => $assignedTechnician->id,
+                            'status' => 'acknowledged'
+                        ]);
+                        
+                        // Create a log entry for the automatic assignment
+                        $log = Log::create([
+                            'user_id' => $assignedTechnician->id,
+                            'issue_id' => $issue->id,
+                            'status' => $validated['status'] ?? 'pending',
+                            'priority' => $validated['priority'] ?? 'low',
+                            'action_taken' => 'Automatically assigned based on expertise, availability, and workload'
+                        ]);
+                        
+                        // Send notification to assigned technician
+                        Notification::send($assignedTechnician, new IssueAssigned($log, $assignedTechnician));
+                        
+                        LogFacade::info('Issue automatically assigned to technician', [
+                            'issue_id' => $issue->id,
+                            'technician_id' => $assignedTechnician->id,
+                            'technician_name' => $assignedTechnician->name,
+                            'log_id' => $log->id
+                        ]);
+                    } else {
+                        LogFacade::warning('No technician could be automatically assigned', [
+                            'issue_id' => $issue->id,
+                            'category' => $issue->category
+                        ]);
+                    }
+                } catch (Exception $e) {
+                    LogFacade::error('Automatic assignment failed', [
+                        'issue_id' => $issue->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw $e;
+                }
+            });
+        }
     
-        return response()->json(['message' => 'Issue created successfully.', 'issue' => $issue], 201);
+        return response()->json(['message' => 'Issue created successfully.', 'issue' => $issue->fresh(['user', 'assignedUser'])], 201);
     }
 
     public function show(Issue $issue)

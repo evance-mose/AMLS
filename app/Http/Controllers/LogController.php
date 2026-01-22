@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Log;
 use App\Models\User;
 use App\Models\Issue;
+use App\Services\TechnicianAssignmentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Notifications\IssueAssigned;
@@ -44,16 +45,34 @@ class LogController extends Controller
         DB::transaction(function () use ($validate) {
             $log = Log::create($validate);
     
-            if ($log->user_id && $log->issue_id) {
-                $assignedUser = User::find($log->user_id);
+            if ($log->issue_id) {
                 $issue = Issue::find($log->issue_id);
                 
-                Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
-               
-                $issue->update([
-                    'status' => 'acknowledged',
-                    'assigned_to' => $log->user_id
-                ]);
+                // Automatic technician assignment if issue exists but no user assigned
+                if ($issue && !$log->user_id && !$issue->assigned_to) {
+                    $assignmentService = new TechnicianAssignmentService();
+                    $assignedTechnician = $assignmentService->assignTechnician($issue);
+                    
+                    if ($assignedTechnician) {
+                        $log->update(['user_id' => $assignedTechnician->id]);
+                        $issue->update([
+                            'assigned_to' => $assignedTechnician->id,
+                            'status' => 'acknowledged'
+                        ]);
+                        
+                        Notification::send($assignedTechnician, new IssueAssigned($log, $assignedTechnician));
+                    }
+                } elseif ($log->user_id && $issue) {
+                    // Manual assignment via log
+                    $assignedUser = User::find($log->user_id);
+                    
+                    Notification::send($assignedUser, new IssueAssigned($log, $assignedUser));
+                   
+                    $issue->update([
+                        'status' => 'acknowledged',
+                        'assigned_to' => $log->user_id
+                    ]);
+                }
             }
         });
     

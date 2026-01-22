@@ -35,6 +35,9 @@ class UserController extends Controller
                 'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
                 'role' => 'required|in:admin,technician,custodian',
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'expertise' => 'nullable|array',
+                'expertise.*' => 'in:dispenser_errors,card_reader_errors,receipt_printer_errors,epp_errors,pc_core_errors,journal_printer_errors,recycling_module_errors,other',
+                'availability' => 'nullable|in:available,busy,unavailable'
             ]);
             
             $user = User::create([
@@ -42,6 +45,8 @@ class UserController extends Controller
                 'email' => $validated['email'],
                 'role' => $validated['role'],
                 'password' => Hash::make($validated['password']),
+                'expertise' => $validated['expertise'] ?? null,
+                'availability' => $validated['availability'] ?? 'available',
             ]);
         
             event(new Registered($user)); 
@@ -73,7 +78,10 @@ class UserController extends Controller
                 Rule::unique('users')->ignore($user->id)
             ],
             'role' => 'required|in:admin,technician,custodian',
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive',
+            'expertise' => 'nullable|array',
+            'expertise.*' => 'in:dispenser_errors,card_reader_errors,receipt_printer_errors,epp_errors,pc_core_errors,journal_printer_errors,recycling_module_errors,other',
+            'availability' => 'nullable|in:available,busy,unavailable'
         ]);
         
         $user->update($validated);

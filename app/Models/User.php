@@ -23,7 +23,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'status'
+        'status',
+        'expertise',
+        'availability'
     ];
 
     /**
@@ -46,12 +48,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'expertise' => 'array',
         ];
     }
 
     public function issues(): HasMany
     {
         return $this->hasMany(Issue::class);
+    }
+
+    public function assignedIssues(): HasMany
+    {
+        return $this->hasMany(Issue::class, 'assigned_to');
     }
 
     public function logs(): HasMany

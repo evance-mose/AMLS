@@ -21,7 +21,7 @@ Route::middleware(['auth:sanctum', 'verified', RoleMiddleware::class . ':admin,c
     Route::apiResource('users', ApiUserController::class); // Assuming analytics/monthly is also a report
 });
 
-
+Route::apiResource('logs', ApiLogController::class);
 Route::get('reports/monthly', [ReportController::class, 'apiMonthly']);
 
 // Route::middleware(['auth:sanctum', 'verified', RoleMiddleware::class . ':admin'])->group(function () {
