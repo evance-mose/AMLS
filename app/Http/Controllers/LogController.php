@@ -21,19 +21,52 @@ class LogController extends Controller
     {
         $user = Auth::user();
         $logsQuery = Log::with(['user', 'issue']);
-        if ($user && $user->role === 'technician') {
+        
+        // Role-based filtering
+        if ($user->role === 'technician') {
+            // Technicians only see logs for their assigned issues
             $logsQuery->where('user_id', $user->id);
+        } elseif ($user->role === 'admin') {
+            // Admins see all logs
+            // No filter needed
+        } else {
+            // Custodians cannot access logs
+            abort(403, 'You do not have permission to view logs.');
         }
+        
         return Inertia::render('logs/index', [
             'data' => $logsQuery->get(),
-            'issues' => Issue::all(),
-            'users' => User::all()
+            'issues' => $user->role === 'admin' ? Issue::all() : [],
+            'users' => $user->role === 'admin' ? User::all() : []
+        ]);
+    }
+
+    public function show(Log $log)
+    {
+        $user = Auth::user();
+        
+        // Authorization checks
+        if ($user->role === 'technician' && $log->user_id !== $user->id) {
+            abort(403, 'You can only view logs assigned to you.');
+        }
+        
+        if ($user->role === 'custodian') {
+            abort(403, 'Custodians cannot view logs.');
+        }
+
+        return Inertia::render('logs/show', [
+            'log' => $log->load(['user', 'issue'])
         ]);
     }
 
 
     public function store(Request $request)
     {
+        // Only technicians can create logs (task resolution)
+        if (Auth::user()->role !== 'technician') {
+            abort(403, 'Only technicians can create logs (task resolution).');
+        }
+
         $validate = $request->validate([
             'user_id' => 'nullable|exists:users,id',
             "issue_id" =>'nullable|exists:issues,id',
@@ -82,6 +115,18 @@ class LogController extends Controller
 
     public function update(Request $request, Log $log)
     {
+        $user = Auth::user();
+        
+        // Only technicians can update logs (task resolution)
+        if ($user->role !== 'technician') {
+            abort(403, 'Only technicians can update logs (task resolution).');
+        }
+        
+        // Technicians can only update their own logs
+        if ($log->user_id !== $user->id) {
+            abort(403, 'You can only update logs assigned to you.');
+        }
+
         $validate = $request->validate([
             'user_id' => 'nullable|exists:users,id',
             "issue_id" =>'nullable|exists:issues,id',
@@ -135,12 +180,17 @@ class LogController extends Controller
 
     public function destroy(string $id)
     {
+        // Only admins can delete logs
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Only admins can delete logs.');
+        }
+
         try {
             $log = Log::findOrFail($id);
             $log->delete();
             return redirect()->back()->with('success', 'Log deleted successfully.');
         } catch (Exception $e) {
-            Log::error('log deletion failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('log deletion failed: ' . $e->getMessage());
         }
     }
 }

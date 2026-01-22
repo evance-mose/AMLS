@@ -22,21 +22,53 @@ class IssueController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $issuesQuery = Issue::with(['user', 'assignedUser'])->where('status', '!=', 'resolved');
+        $issuesQuery = Issue::with(['user', 'assignedUser']);
 
+        // Role-based filtering
         if ($user->role === 'technician') {
-            $issuesQuery->where('assigned_to', $user->id);
+            // Technicians only see their assigned issues
+            $issuesQuery->where('assigned_to', $user->id)
+                       ->whereNotIn('status', ['resolved', 'closed']);
+        } elseif ($user->role === 'custodian') {
+            // Custodians see issues they created
+            $issuesQuery->where('user_id', $user->id);
+        } elseif ($user->role === 'admin') {
+            // Admins see all issues
+            $issuesQuery->whereNotIn('status', ['resolved', 'closed']);
         }
 
         return Inertia::render('issues/index', [
             'issues' => $issuesQuery->get(),
-            'users' => User::all()
+            'users' => $user->role === 'admin' ? User::all() : []
+        ]);
+    }
+
+    public function show(Issue $issue)
+    {
+        $user = Auth::user();
+        
+        // Authorization checks
+        if ($user->role === 'technician' && $issue->assigned_to !== $user->id) {
+            abort(403, 'You can only view issues assigned to you.');
+        }
+        
+        if ($user->role === 'custodian' && $issue->user_id !== $user->id) {
+            abort(403, 'You can only view issues you created.');
+        }
+
+        return Inertia::render('issues/show', [
+            'issue' => $issue->load(['user', 'assignedUser', 'logs'])
         ]);
     }    
 
 
     public function store(Request $request)
     {
+        // Only custodians can create issues (fault logging)
+        if (Auth::user()->role !== 'custodian') {
+            abort(403, 'Only custodians can create issues (fault logging).');
+        }
+
         $validated = $request->validate([
             'location' => 'required|string|max:255',
             'atm_id' => 'required|string|max:255',
@@ -107,6 +139,18 @@ class IssueController extends Controller
   
     public function update(Request $request, Issue $issue)
     {
+        $user = Auth::user();
+        
+        // Only technicians can update issues (task resolution)
+        if ($user->role !== 'technician') {
+            abort(403, 'Only technicians can update issues (task resolution).');
+        }
+        
+        // Technicians can only update their assigned issues
+        if ($issue->assigned_to !== $user->id) {
+            abort(403, 'You can only update issues assigned to you.');
+        }
+
         $validated = $request->validate([
             'user_id' => 'nullable|exists:users,id',
             'assigned_to' => 'nullable|exists:users,id',
@@ -128,12 +172,17 @@ class IssueController extends Controller
      */
     public function destroy(string $id)
     {
+        // Only admins can delete issues
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Only admins can delete issues.');
+        }
+
         try {
             $issue = Issue::findOrFail($id);
             $issue->delete();
             return redirect()->back()->with('success', 'Issue deleted successfully.');
         } catch (Exception $e) {
-            Log::error('Issue deletion failed: ' . $e->getMessage());
+            LogFacade::error('Issue deletion failed: ' . $e->getMessage());
         }
     }
     

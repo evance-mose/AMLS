@@ -19,13 +19,32 @@ class ApiIssueController extends Controller
 {
     public function index()
     {
-        $issuesQuery = Issue::with(['user', 'assignedUser'])->where('status', '!=', 'resolved');
+        $user = Auth::user();
+        $issuesQuery = Issue::with(['user', 'assignedUser']);
+
+        // Role-based filtering
+        if ($user->role === 'technician') {
+            // Technicians only see their assigned issues
+            $issuesQuery->where('assigned_to', $user->id)
+                       ->whereNotIn('status', ['resolved', 'closed']);
+        } elseif ($user->role === 'custodian') {
+            // Custodians see issues they created
+            $issuesQuery->where('user_id', $user->id);
+        } elseif ($user->role === 'admin') {
+            // Admins see all issues
+            $issuesQuery->whereNotIn('status', ['resolved', 'closed']);
+        }
 
         return response()->json($issuesQuery->get());
     }
 
     public function store(Request $request)
     {
+        // Only custodians can create issues (fault logging)
+        if (Auth::user()->role !== 'custodian') {
+            return response()->json(['error' => 'Only custodians can create issues (fault logging).'], 403);
+        }
+
         $validated = $request->validate([
             'location' => 'required|string|max:255',
             'atm_id' => 'required|string|max:255',
@@ -95,11 +114,34 @@ class ApiIssueController extends Controller
 
     public function show(Issue $issue)
     {
+        $user = Auth::user();
+        
+        // Authorization checks
+        if ($user->role === 'technician' && $issue->assigned_to !== $user->id) {
+            return response()->json(['error' => 'You can only view issues assigned to you.'], 403);
+        }
+        
+        if ($user->role === 'custodian' && $issue->user_id !== $user->id) {
+            return response()->json(['error' => 'You can only view issues you created.'], 403);
+        }
+
         return response()->json($issue->load(['user', 'assignedUser']));
     }
   
     public function update(Request $request, Issue $issue)
     {
+        $user = Auth::user();
+        
+        // Only technicians can update issues (task resolution)
+        if ($user->role !== 'technician') {
+            return response()->json(['error' => 'Only technicians can update issues (task resolution).'], 403);
+        }
+        
+        // Technicians can only update their assigned issues
+        if ($issue->assigned_to !== $user->id) {
+            return response()->json(['error' => 'You can only update issues assigned to you.'], 403);
+        }
+
         $validated = $request->validate([
             'user_id' => 'nullable|exists:users,id',
             'assigned_to' => 'nullable|exists:users,id',
@@ -118,11 +160,16 @@ class ApiIssueController extends Controller
 
     public function destroy(Issue $issue)
     {
+        // Only admins can delete issues
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Only admins can delete issues.'], 403);
+        }
+
         try {
             $issue->delete();
             return response()->json(['message' => 'Issue deleted successfully.']);
         } catch (Exception $e) {
-            Log::error('Issue deletion failed: ' . $e->getMessage());
+            LogFacade::error('Issue deletion failed: ' . $e->getMessage());
             return response()->json(['message' => 'Issue deletion failed.'], 500);
         }
     }

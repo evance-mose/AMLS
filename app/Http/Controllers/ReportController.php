@@ -6,14 +6,19 @@ namespace App\Http\Controllers;
 use App\Models\Issue;
 use App\Models\Log;
 use App\Models\User;
-
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
 
     public function monthly(Request $request)
     {
+        // Only admins can access reports
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'Only admins can access reports.');
+        }
+
         $month = $request->input('month', date('F'));
         $year = $request->input('year', date('Y'));
 
@@ -79,6 +84,11 @@ class ReportController extends Controller
 
     public function apiMonthly(Request $request)
     {
+        // Only admins can access reports
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Only admins can access reports.'], 403);
+        }
+
         $month = $request->input('month', date('F'));
         $year = $request->input('year', date('Y'));
 
