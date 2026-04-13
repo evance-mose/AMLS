@@ -7,7 +7,7 @@ import LogFormDialog from '@/pages/logs/LogForm';
 import UserFormDialog from '@/pages/users/userForm';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ClipboardList, FileText, Kanban, LayoutGrid, List, ListChecks, Plus, PlusCircle, Users } from 'lucide-react';
+import { ClipboardList, FileText, Kanban, LayoutGrid, List, ListChecks, MapPin, Plus, PlusCircle, Users } from 'lucide-react';
 import { useState } from 'react';
 import AppLogo from './app-logo';
 
@@ -30,6 +30,15 @@ export function AppSidebar() {
                 },
             ],
         },
+        ...(auth.user.role === 'admin'
+            ? [
+                  {
+                      title: 'Locations',
+                      href: '/location-trail',
+                      icon: MapPin,
+                  } satisfies NavItem,
+              ]
+            : []),
         {
             title: 'Users',
             href: '/users',
