@@ -4,14 +4,14 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -25,7 +25,7 @@ class User extends Authenticatable
         'role',
         'status',
         'expertise',
-        'availability'
+        'availability',
     ];
 
     /**
@@ -65,6 +65,11 @@ class User extends Authenticatable
     public function logs(): HasMany
     {
         return $this->hasMany(Log::class);
+    }
+
+    public function locationTrailPoints(): HasMany
+    {
+        return $this->hasMany(LocationTrailPoint::class);
     }
 
     public function scopeAdmins($query)
