@@ -6,8 +6,8 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ExternalLink, MapPin } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
+import { type ComponentType, useEffect, useMemo, useState } from 'react';
+import type { TrailMapLayer } from './LocationTrailMap';
 
 interface TrailUser {
     id: number;
@@ -53,6 +53,11 @@ function formatWhen(iso: string): string {
 
 export default function LocationTrailIndex({ trailPoints, technicians, hours, hourOptions }: PageProps) {
     const [technicianFilter, setTechnicianFilter] = useState<string>('all');
+    const [MapComponent, setMapComponent] = useState<ComponentType<{ layers: TrailMapLayer[] }> | null>(null);
+
+    useEffect(() => {
+        void import('./LocationTrailMap').then((m) => setMapComponent(() => m.default));
+    }, []);
 
     const pointsByUserId = useMemo(() => {
         const m = new Map<number, TrailPoint[]>();
@@ -77,48 +82,42 @@ export default function LocationTrailIndex({ trailPoints, technicians, hours, ho
         });
     }, [technicians, pointsByUserId]);
 
-    const chartPoints = useMemo(() => {
-        if (technicianFilter === 'all') {
+    const mapLayers = useMemo((): TrailMapLayer[] => {
+        if (trailPoints.length === 0) {
             return [];
         }
+        if (technicianFilter === 'all') {
+            return technicians
+                .map((t) => {
+                    const pts = [...(pointsByUserId.get(t.id) ?? [])].sort(
+                        (a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime(),
+                    );
+                    if (pts.length === 0) {
+                        return null;
+                    }
+                    const path: [number, number][] = pts.map((p) => [p.latitude, p.longitude]);
+                    const last = pts[pts.length - 1];
+                    return {
+                        userId: t.id,
+                        label: t.name,
+                        path,
+                        latest: [last.latitude, last.longitude],
+                    };
+                })
+                .filter((x): x is TrailMapLayer => x !== null);
+        }
         const id = Number(technicianFilter);
-        const pts = (pointsByUserId.get(id) ?? []).slice();
-        pts.sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime());
-        return pts.map((p, i) => ({
-            longitude: p.longitude,
-            latitude: p.latitude,
-            recorded_at: p.recorded_at,
-            seq: i + 1,
-        }));
-    }, [technicianFilter, pointsByUserId]);
-
-    const domain = useMemo(() => {
-        if (chartPoints.length === 0) {
-            return null;
+        const t = technicians.find((row) => row.id === id);
+        const pts = [...(pointsByUserId.get(id) ?? [])].sort(
+            (a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime(),
+        );
+        if (!t || pts.length === 0) {
+            return [];
         }
-        const lats = chartPoints.map((p) => p.latitude);
-        const lons = chartPoints.map((p) => p.longitude);
-        const pad = 0.003;
-        let minLat = Math.min(...lats);
-        let maxLat = Math.max(...lats);
-        let minLon = Math.min(...lons);
-        let maxLon = Math.max(...lons);
-        if (maxLat === minLat) {
-            minLat -= pad;
-            maxLat += pad;
-        } else {
-            minLat -= pad;
-            maxLat += pad;
-        }
-        if (maxLon === minLon) {
-            minLon -= pad;
-            maxLon += pad;
-        } else {
-            minLon -= pad;
-            maxLon += pad;
-        }
-        return { minLat, maxLat, minLon, maxLon };
-    }, [chartPoints]);
+        const path: [number, number][] = pts.map((p) => [p.latitude, p.longitude]);
+        const last = pts[pts.length - 1];
+        return [{ userId: id, label: t.name, path, latest: [last.latitude, last.longitude] }];
+    }, [trailPoints, technicianFilter, technicians, pointsByUserId]);
 
     const tablePoints = useMemo(() => {
         if (technicianFilter === 'all') {
@@ -224,58 +223,23 @@ export default function LocationTrailIndex({ trailPoints, technicians, hours, ho
                     </CardContent>
                 </Card>
 
-                {technicianFilter !== 'all' && chartPoints.length > 1 && domain && (
+                {MapComponent ? (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Trail</CardTitle>
-                            <CardDescription>Positions in time order (approximate path). Axes are latitude and longitude.</CardDescription>
+                            <CardTitle>Map</CardTitle>
+                            <CardDescription>
+                                OpenStreetMap tiles (no API key). Polylines follow samples in time order; the larger dot is the latest position.
+                                {technicianFilter === 'all' ? ' Each technician has a distinct color.' : ''}
+                            </CardDescription>
                         </CardHeader>
-                        <CardContent className="h-[380px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <ScatterChart margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
-                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                    <XAxis
-                                        type="number"
-                                        dataKey="longitude"
-                                        domain={[domain.minLon, domain.maxLon]}
-                                        name="Longitude"
-                                        tick={{ fontSize: 11 }}
-                                    />
-                                    <YAxis
-                                        type="number"
-                                        dataKey="latitude"
-                                        domain={[domain.minLat, domain.maxLat]}
-                                        name="Latitude"
-                                        tick={{ fontSize: 11 }}
-                                    />
-                                    <Tooltip
-                                        content={({ active, payload }) => {
-                                            if (!active || !payload?.[0]) {
-                                                return null;
-                                            }
-                                            const d = payload[0].payload as { latitude: number; longitude: number; recorded_at: string; seq: number };
-                                            return (
-                                                <div className="bg-background border-border rounded-md border px-3 py-2 text-sm shadow-md">
-                                                    <div className="font-medium">Point {d.seq}</div>
-                                                    <div className="text-muted-foreground">{formatWhen(d.recorded_at)}</div>
-                                                    <div className="font-mono text-xs">
-                                                        {d.latitude.toFixed(6)}, {d.longitude.toFixed(6)}
-                                                    </div>
-                                                </div>
-                                            );
-                                        }}
-                                    />
-                                    <Scatter name="Trail" data={chartPoints} fill="hsl(var(--primary))" line={{ stroke: 'hsl(var(--primary))', strokeWidth: 1 }} />
-                                </ScatterChart>
-                            </ResponsiveContainer>
+                        <CardContent className="p-2 sm:p-4">
+                            <MapComponent layers={mapLayers} />
                         </CardContent>
                     </Card>
-                )}
-
-                {technicianFilter !== 'all' && chartPoints.length === 1 && (
+                ) : (
                     <Card>
-                        <CardContent className="text-muted-foreground py-6 text-sm">
-                            Only one position in this window; open the map link in the overview table to see it in context.
+                        <CardContent className="text-muted-foreground flex min-h-[200px] items-center justify-center py-8 text-sm">
+                            Loading map…
                         </CardContent>
                     </Card>
                 )}
