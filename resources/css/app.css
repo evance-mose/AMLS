@@ -157,3 +157,20 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Leaflet inside Tailwind: preflight’s max-width on img breaks map tiles (invisible map). */
+@layer components {
+    .location-trail-map .leaflet-container {
+        z-index: 1;
+        height: 100%;
+        width: 100%;
+        background: var(--color-muted);
+    }
+
+    .location-trail-map .leaflet-container img.leaflet-tile,
+    .location-trail-map .leaflet-container img.leaflet-marker-icon,
+    .location-trail-map .leaflet-container img.leaflet-marker-shadow {
+        max-width: none !important;
+        max-height: none !important;
+    }
+}

@@ -7,6 +7,8 @@ import {
     CheckCircle,
     Clock,
     FileText,
+    Loader2,
+    MapPin,
     Settings,
     TrendingUp,
     Users,
@@ -61,6 +63,10 @@ export default function AdminDashboard({ stats, recentIssues, recentLogs, issues
                     <Button onClick={() => router.visit(route('reports.monthly'))} variant="outline">
                         <FileText className="mr-2 h-4 w-4" />
                         View Reports
+                    </Button>
+                    <Button onClick={() => router.visit(route('location-trail.index'))} variant="outline">
+                        <MapPin className="mr-2 h-4 w-4" />
+                        Technician locations
                     </Button>
                 </div>
             </div>
