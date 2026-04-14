@@ -39,13 +39,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Issues: Role-based access
     Route::prefix('issues')->name('issues.')->group(function () {
-        // Custodian: Create issues (fault logging)
-        Route::middleware(RoleMiddleware::class.':custodian')->group(function () {
+        // Custodian + admin: Create issues (fault logging)
+        Route::middleware(RoleMiddleware::class.':admin,custodian')->group(function () {
             Route::post('/', [IssueController::class, 'store'])->name('store');
         });
 
-        // Technician: Update assigned issues (task resolution)
-        Route::middleware(RoleMiddleware::class.':technician')->group(function () {
+        // Technician + admin: Update assigned issues (task resolution)
+        Route::middleware(RoleMiddleware::class.':admin,technician')->group(function () {
             Route::put('{issue}', [IssueController::class, 'update'])->name('update');
         });
 
@@ -63,8 +63,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Logs: Role-based access
     Route::prefix('logs')->name('logs.')->group(function () {
-        // Technician: Create and update logs (task resolution)
-        Route::middleware(RoleMiddleware::class.':technician')->group(function () {
+        // Technician + admin: Create and update logs (task resolution)
+        Route::middleware(RoleMiddleware::class.':admin,technician')->group(function () {
             Route::post('/', [LogController::class, 'store'])->name('store');
             Route::put('{log}', [LogController::class, 'update'])->name('update');
         });

@@ -3,22 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Issue;
-use App\Models\User;
 use App\Models\Log;
-use App\Services\TechnicianAssignmentService;
+use App\Models\User;
 use App\Notifications\IssueAssigned;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log as LogFacade;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
+use App\Services\TechnicianAssignmentService;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log as LogFacade;
+use Illuminate\Support\Facades\Notification;
+use Inertia\Inertia;
 
 class IssueController extends Controller
 {
- 
-
     public function index()
     {
         $user = Auth::user();
@@ -28,7 +26,7 @@ class IssueController extends Controller
         if ($user->role === 'technician') {
             // Technicians only see their assigned issues
             $issuesQuery->where('assigned_to', $user->id)
-                       ->whereNotIn('status', ['resolved', 'closed']);
+                ->whereNotIn('status', ['resolved', 'closed']);
         } elseif ($user->role === 'custodian') {
             // Custodians see issues they created
             $issuesQuery->where('user_id', $user->id);
@@ -39,34 +37,37 @@ class IssueController extends Controller
 
         return Inertia::render('issues/index', [
             'issues' => $issuesQuery->get(),
-            'users' => $user->role === 'admin' ? User::all() : []
+            'users' => $user->role === 'admin' ? User::all() : [],
         ]);
     }
 
     public function show(Issue $issue)
     {
         $user = Auth::user();
-        
-        // Authorization checks
+
+        if ($user->role === 'admin') {
+            return Inertia::render('issues/show', [
+                'issue' => $issue->load(['user', 'assignedUser', 'logs']),
+            ]);
+        }
+
         if ($user->role === 'technician' && $issue->assigned_to !== $user->id) {
             abort(403, 'You can only view issues assigned to you.');
         }
-        
+
         if ($user->role === 'custodian' && $issue->user_id !== $user->id) {
             abort(403, 'You can only view issues you created.');
         }
 
         return Inertia::render('issues/show', [
-            'issue' => $issue->load(['user', 'assignedUser', 'logs'])
+            'issue' => $issue->load(['user', 'assignedUser', 'logs']),
         ]);
-    }    
-
+    }
 
     public function store(Request $request)
     {
-        // Only custodians can create issues (fault logging)
-        if (Auth::user()->role !== 'custodian') {
-            abort(403, 'Only custodians can create issues (fault logging).');
+        if (! in_array(Auth::user()->role, ['custodian', 'admin'], true)) {
+            abort(403, 'Only custodians and administrators can create issues.');
         }
 
         $validated = $request->validate([
@@ -78,76 +79,73 @@ class IssueController extends Controller
             'priority' => 'required|in:low,medium,high',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
-    
+
         $issue = Issue::create([
             ...$validated,
-            'user_id' => Auth()->id()
+            'user_id' => Auth()->id(),
         ]);
 
         // Automatic technician assignment if not manually assigned
         if (empty($validated['assigned_to'])) {
             DB::transaction(function () use ($issue, $validated) {
                 try {
-                    $assignmentService = new TechnicianAssignmentService();
+                    $assignmentService = new TechnicianAssignmentService;
                     $assignedTechnician = $assignmentService->assignTechnician($issue);
-                    
+
                     if ($assignedTechnician) {
                         // Update issue with assigned technician
                         $issue->update([
                             'assigned_to' => $assignedTechnician->id,
-                            'status' => 'acknowledged'
+                            'status' => 'acknowledged',
                         ]);
-                        
+
                         // Create a log entry for the automatic assignment
                         $log = Log::create([
                             'user_id' => $assignedTechnician->id,
                             'issue_id' => $issue->id,
                             'status' => $validated['status'] ?? 'pending',
                             'priority' => $validated['priority'] ?? 'low',
-                            'action_taken' => 'Automatically assigned based on expertise, availability, and workload'
+                            'action_taken' => 'Automatically assigned based on expertise, availability, and workload',
                         ]);
-                        
+
                         // Send notification to assigned technician
                         Notification::send($assignedTechnician, new IssueAssigned($log, $assignedTechnician));
-                        
+
                         LogFacade::info('Issue automatically assigned to technician', [
                             'issue_id' => $issue->id,
                             'technician_id' => $assignedTechnician->id,
                             'technician_name' => $assignedTechnician->name,
-                            'log_id' => $log->id
+                            'log_id' => $log->id,
                         ]);
                     } else {
                         LogFacade::warning('No technician could be automatically assigned', [
                             'issue_id' => $issue->id,
-                            'category' => $issue->category
+                            'category' => $issue->category,
                         ]);
                     }
                 } catch (Exception $e) {
                     LogFacade::error('Automatic assignment failed', [
                         'issue_id' => $issue->id,
                         'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString()
+                        'trace' => $e->getTraceAsString(),
                     ]);
                     throw $e;
                 }
             });
         }
-    
+
         return redirect()->back()->with('success', 'Issue created successfully.');
     }
 
-  
     public function update(Request $request, Issue $issue)
     {
         $user = Auth::user();
-        
-        // Only technicians can update issues (task resolution)
-        if ($user->role !== 'technician') {
-            abort(403, 'Only technicians can update issues (task resolution).');
+
+        if (! in_array($user->role, ['technician', 'admin'], true)) {
+            abort(403, 'Only technicians and administrators can update issues.');
         }
-        
-        // Technicians can only update their assigned issues
-        if ($issue->assigned_to !== $user->id) {
+
+        if ($user->role === 'technician' && $issue->assigned_to !== $user->id) {
             abort(403, 'You can only update issues assigned to you.');
         }
 
@@ -180,10 +178,10 @@ class IssueController extends Controller
         try {
             $issue = Issue::findOrFail($id);
             $issue->delete();
+
             return redirect()->back()->with('success', 'Issue deleted successfully.');
         } catch (Exception $e) {
-            LogFacade::error('Issue deletion failed: ' . $e->getMessage());
+            LogFacade::error('Issue deletion failed: '.$e->getMessage());
         }
     }
-    
 }

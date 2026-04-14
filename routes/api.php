@@ -25,13 +25,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Issues: Role-based access
     Route::prefix('issues')->name('issues.')->group(function () {
-        // Custodian: Create issues (fault logging)
-        Route::middleware(RoleMiddleware::class.':custodian')->group(function () {
+        // Custodian + admin: Create issues (fault logging)
+        Route::middleware(RoleMiddleware::class.':admin,custodian')->group(function () {
             Route::post('/', [ApiIssueController::class, 'store']);
         });
 
-        // Technician: Update assigned issues (task resolution)
-        Route::middleware(RoleMiddleware::class.':technician')->group(function () {
+        // Technician + admin: Update issues (task resolution)
+        Route::middleware(RoleMiddleware::class.':admin,technician')->group(function () {
             Route::put('{issue}', [ApiIssueController::class, 'update']);
         });
 
@@ -49,8 +49,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Logs: Role-based access
     Route::prefix('logs')->name('logs.')->group(function () {
-        // Technician: Create and update logs (task resolution)
-        Route::middleware(RoleMiddleware::class.':technician')->group(function () {
+        // Technician + admin: Create and update logs (task resolution)
+        Route::middleware(RoleMiddleware::class.':admin,technician')->group(function () {
             Route::post('/', [ApiLogController::class, 'store']);
             Route::put('{log}', [ApiLogController::class, 'update']);
         });
@@ -67,8 +67,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         });
     });
 
-    // Location trail: technician upload, admin read
-    Route::middleware(RoleMiddleware::class.':technician')->group(function () {
+    // Location trail: technician + admin upload, admin read
+    Route::middleware(RoleMiddleware::class.':admin,technician')->group(function () {
         Route::post('location-trail', [ApiLocationTrailController::class, 'store'])
             ->middleware('throttle:location-trail');
     });
