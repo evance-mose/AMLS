@@ -68,13 +68,14 @@ function MapResizeFix() {
 
 export default function LocationTrailMap({ layers }: { layers: TrailMapLayer[] }) {
     const hasData = layers.length > 0;
-    const firstCoord: [number, number] = hasData ? (layers[0].latest ?? layers[0].path[0]) : [-13.5, 28.3];
+    // Default to Malawi when there are no points yet.
+    const firstCoord: [number, number] = hasData ? (layers[0].latest ?? layers[0].path[0]) : [-13.2543, 34.3015];
 
     return (
         <div className="location-trail-map border-border relative h-[min(420px,55vh)] min-h-[280px] w-full overflow-hidden rounded-md border sm:h-[420px]">
             <MapContainer
                 center={firstCoord}
-                zoom={hasData ? 13 : 6}
+                zoom={hasData ? 13 : 7}
                 className="!absolute inset-0 z-0 block size-full"
                 style={{ height: '100%', width: '100%' }}
                 scrollWheelZoom
